@@ -201,9 +201,20 @@ class GlobalGridFunctionNumberData
 			//			   << "Point: " << x << ", Element: "
 			//			   << ElementDebugInfo(*m_spGridFct->domain()->grid(), elem));
 		}
-
-		/// evaluate value on all procs
+		/// evaluate value on all procs, throws when no containing element is found
 		inline void evaluate_global(number& value, const MathVector<dim>& x) const
+		{
+			// evaluate at this proc
+			bool bFound = this->try_evaluate_global(value, x);
+
+			if(!bFound)
+				UG_THROW("Couldn't find an element containing the specified point: " << x);
+		}
+
+
+		/// evaluate value on all procs, does not throw an error if element is not found.
+		/// returns truth value whether element was found or not
+		inline bool try_evaluate_global(number& value, const MathVector<dim>& x) const
 		{
 			// evaluate at this proc
 			bool bFound = this->evaluate(value, x);
@@ -218,8 +229,11 @@ class GlobalGridFunctionNumberData
 			if(!bFound) value = 0.0;
 			number globValue = com.allreduce(value, PCL_RO_SUM) / numFound;
 
+			// return false if no process contains an element with coordinates x
 			if(numFound == 0)
-				UG_THROW("Point "<<x<<" not found on all "<<pcl::NumProcs()<<" procs.");
+				return false;
+
+
 
 			// check correctness for continuous spaces
 			// note: if the point is found more than one it is located on the
@@ -233,11 +247,11 @@ class GlobalGridFunctionNumberData
 
 			// set as global value
 			value = globValue;
+			// if we get here, we found an element on some process
 			bFound = true;
-#endif
 
-			if(!bFound)
-				UG_THROW("Couldn't find an element containing the specified point: " << x);
+#endif
+			return bFound;
 		}
 
 		// evaluates at given position

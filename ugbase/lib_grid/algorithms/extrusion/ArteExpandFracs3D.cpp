@@ -66,19 +66,22 @@
 
 #include "simpleMatrixOps.h"
 
-
+#include "DiamondInfo.h"
 
 namespace ug
+{
+
+namespace arte
 {
 
 ArteExpandFracs3D::ArteExpandFracs3D(
 		Grid & grid, SubsetHandler & sh,
 	    std::vector<FractureInfo> const & fracInfos,
-		bool useTrianglesInDiamonds, bool establishDiamonds )
+		bool diamondsOnlyPreform, bool establishDiamonds )
 	: m_grid(grid),
 	  m_sh(sh),
 	  m_fracInfos(fracInfos),
-	  m_useTrianglesInDiamonds(useTrianglesInDiamonds),
+	  m_diamondsOnlyPreform(diamondsOnlyPreform),
 	  m_establishDiamonds(establishDiamonds),
 	  m_aaPos(Grid::VertexAttachmentAccessor<APosition>()),
 //	  m_facDescr(FaceDescriptor()),
@@ -138,10 +141,30 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_vrtxArisesFromExpandedEndingCrossingCleft(std::vector<Vertex*>()),
 	  m_allowedSqueeze(0.9),
 	  m_vrtcsViolatingExpansion(std::vector<Vertex*>()),
-	  m_volsViolatingExpansion(std::vector<Volume*>())
+	  m_volsViolatingExpansion(std::vector<Volume*>()),
+	  m_vecVolManifVrtxCombiToShrink4Diams(VecVolManifVrtxCombi())
+//	  m_diamInfos3D(std::vector<DiamantInfo3D>()),
+//	  m_oldNewVrtcs4Diams(std::vector<VrtxPair>())
 {
 //	// Notloesung, nicht in die erste Initialisierung vor geschweifter Klammer, da copy constructor privat
 	m_sel = Selector();
+
+	UG_LOG("----------------------------" << std::endl);
+	UG_LOG("----------------------------" << std::endl);
+
+	UG_LOG("EXPANDING PROCEDURE ARTE 3D " << std::endl);
+
+	for( FractureInfo const & fi : m_fracInfos )
+	{
+		UG_LOG("Fracture old " << fi.subsetIndex << " new " << fi.newSubsetIndex << " width " << fi.width << std::endl);
+	}
+
+	UG_LOG("----------------------------" << std::endl);
+
+	UG_LOG("DIAMONDS pre " << m_diamondsOnlyPreform << " and establish " << m_establishDiamonds << std::endl);
+
+	UG_LOG("----------------------------" << std::endl);
+	UG_LOG("----------------------------" << std::endl);
 }
 
 
@@ -153,6 +176,11 @@ ArteExpandFracs3D::~ArteExpandFracs3D()
 bool ArteExpandFracs3D::run( bool & needToRestart )
 {
 	needToRestart = false;
+
+//	if( ! m_establishDiamonds )
+//	{
+//		UG_LOG("NO DIAMS " << std::endl);
+//	}
 
 	if( ! initialize() )
 		return false;
@@ -308,6 +336,18 @@ bool ArteExpandFracs3D::run( bool & needToRestart )
 	IndexType numDelEndCrossCleftFacs = deleteEndingCrossingCleftOrigFacs();
 
 	UG_LOG("deleted ending crossing cleft changed faces and direction edges " << numDelEndCrossCleftFacs << std::endl);
+
+	if( m_establishDiamonds )
+	{
+		if( ! createTheDiamonds() )
+		{
+			UG_LOG("Diamond creation failed " << std::endl);
+			return false;
+//			UG_THROW("Diamonds not creatable" << std::endl);
+		}
+	}
+
+	UG_LOG("diamonds created if desired" << std::endl);
 
 	return true;
 }
@@ -1616,7 +1656,7 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 
 #if 0
 
-	// TODO FIXME das ist was komisches, was von Prof. Reiter da ist, es werden edges gesplittet, für was?
+	// TODO FIXME das ist was komisches, was von S. Reiter da ist, es werden edges gesplittet, für was?
 
 	edges.clear();
 	for(EdgeIterator iter = sel.begin<Edge>();
@@ -5298,13 +5338,20 @@ bool ArteExpandFracs3D::establishNewVertizesStasiBased( Vertex * const & oldVrt)
 			UG_LOG("beim ausdehnen ungeschlossene Gesichter " << std::endl);
 		}
 
-		if( ! expandWithinTheSegment(segLimSids) )
+		if( ! expandWithinTheSegment( segLimSids ) )
 		{
 			UG_LOG("schief gegangen Vertex Erzeugung " << std::endl);
 			//UG_THROW("schief gegangen Vertex Erzeugung " << std::endl);
 			return false;
 		}
 	}
+
+	// collect information for diamonds already now, get the crossing points
+
+	bool isCrossingPt = ( vecSegmLimSid.size() > 2 );
+
+	if( isCrossingPt )
+		m_vrtcsCrossingPts.push_back(oldVrt);
 
 	UG_LOG("Vertex creation hat funktioniert " << std::endl);
 	//	UG_THROW("Vertex creation failed " << std::endl);
@@ -6244,6 +6291,14 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 			}
 		}
 	}
+
+//	if( isCrossingPt )
+//	{
+//		VrtxPair oldNewV( oldVrt, newShiftVrtx );
+//		m_oldNewVrtcs4Diams.push_back(oldNewV);
+//	}
+
+
 
 	return true;
 
@@ -7652,7 +7707,7 @@ bool ArteExpandFracs3D::createNewElements()
 					}
 					else if ( locVrtInds.size() == 4 )
 					{
-						// newly implemented by Markus to test with Hexahedrons
+						// newly implemented by Markus to test with Hexahedrons, not really working.....
 
 						size_t iv0 = locVrtInds[0];
 						size_t iv1 = locVrtInds[1];
@@ -7785,6 +7840,90 @@ bool ArteExpandFracs3D::createNewElements()
 						m_sh.assign_subset(expVol, newSubs);
 
 						newFractureVolumes.push_back(expVol);
+
+						// TODO FIXME irgendwie hier muss die Infosammlung für die Diamenten auch stattfinden
+
+						// check if contains a crossing point
+
+						IndexType constexpr maxVolVrtxNum = 3;  // restricts algo to tetrahedral based grids
+
+#if 1
+//						std::vector<VrtxPair> oldShiftVrtcs;
+
+						for( auto const & crossVrtx : m_vrtcsCrossingPts )
+						{
+							for( IndexType i = 0; i < maxVolVrtxNum; i++ )
+							{
+								IndexType iv = locVrtInds[i];
+								Vertex * oldVrt = sv->vertex(iv);
+
+								if( oldVrt == crossVrtx )
+								{
+									Vertex * shiVrt = ( m_aaVrtVecVol[sv] )[iv];
+
+									if( shiVrt )
+									{
+										Vertex * oldVrt = sv->vertex(iv);
+										VrtxPair osv( oldVrt, shiVrt );
+										VolManifVrtxCombi vmvc( expVol, tFace, osv, newSubs );
+
+										m_vecVolManifVrtxCombiToShrink4Diams.push_back(vmvc);
+									}
+								}
+							}
+						}
+
+//						if( oldShiftVrtcs.size() > 0 )
+//						{
+//						}
+
+#else
+
+						bool containsCrossVrtx = false;
+
+						for( auto const & crossVrtx : m_vrtcsCrossingPts )
+						{
+							for( IndexType i = 0; i < maxVolVrtxNum; i++ )
+							{
+								IndexType iv = locVrtInds[i];
+								Vertex * oldVrt = sv->vertex(iv);
+
+								if( oldVrt == crossVrtx )
+								{
+									containsCrossVrtx = true;
+									break;
+								}
+							}
+
+							if( containsCrossVrtx )
+								break;
+						}
+
+						if( containsCrossVrtx )
+						{
+							std::vector<VrtxPair> oldShiftVrtcs;
+
+							for( IndexType i = 0; i < maxVolVrtxNum; i++ )
+							{
+								IndexType iv = locVrtInds[i];
+
+								Vertex * shiVrt = ( m_aaVrtVecVol[sv] )[iv];
+
+								if( shiVrt )
+								{
+									Vertex * oldVrt = sv->vertex(iv);
+									VrtxPair cv( oldVrt, shiVrt );
+									oldShiftVrtcs.push_back(cv);
+								}
+							}
+
+							VolManifVrtxCombi vmvc( expVol, tFace, oldShiftVrtcs, newSubs );
+
+							m_vecVolManifVrtxCombiToShrink4Diams.push_back(vmvc);
+						}
+
+#endif
+
 					}
 				}
 			}
@@ -9137,5 +9276,30 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingClefts( std::vector<Volum
 	return true;
 }
 
+bool ArteExpandFracs3D::createTheDiamonds()
+{
+	diamonds::DiamondsEstablish3D establishDiams( m_grid, m_sh, m_vecVolManifVrtxCombiToShrink4Diams );
+
+	UG_LOG("Establishing diamonds" << std::endl);
+
+	return establishDiams.createTheDiamonds(m_diamondsOnlyPreform);
+
+//	IndexType sudos = m_sh.num_subsets();
+//
+//	for( auto & vmvcd : m_vecVolManifVrtxCombiToShrink4Diams )
+//	{
+//		Volume* vol;
+//		vmvcd.spuckVol(vol);
+//
+//		m_sh.assign_subset(vol, sudos);
+//	}
+//
+//	UG_LOG("Established diamonds" << std::endl);
+//
+//
+//	return true;
+}
+
+} /* namespace arte */
 
 } /* namespace ug */
