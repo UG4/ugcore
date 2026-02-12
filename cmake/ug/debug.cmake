@@ -84,7 +84,9 @@ else(DEBUG)
 
 	# compiler specific release flags
 	if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-		add_cxx_flag("-funroll-loops -ftree-vectorize")
+		add_cxx_flag("-funroll-loops -ftree-vectorize -march=native")
+	elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+		add_cxx_flag("-funroll-loops -ftree-vectorize -march=native")
 	elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Cray")
 		add_cxx_flag("-hipa5 -hunroll2")
 	endif()
