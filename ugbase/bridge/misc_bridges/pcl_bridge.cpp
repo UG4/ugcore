@@ -37,6 +37,7 @@
 
 #ifdef UG_PARALLEL
 #include "pcl/pcl.h"
+#include "pcl/space_time_communicator.hpp"
 #endif
 
 using namespace std;
@@ -151,6 +152,24 @@ void RegisterBridge_PCL(Registry& reg, string parentGroup)
 	reg.add_function("ParallelVecMin", &ParallelVecMin<double>, grp, "tmax", "t", "returns the minimum of t over all processes. note: you have to assure that all processes call this function.");
 	reg.add_function("ParallelVecMax", &ParallelVecMax<double>, grp, "tmin", "t", "returns the maximum of t over all processes. note: you have to assure that all processes call this function.");
 	reg.add_function("ParallelVecSum", &ParallelVecSum<double>, grp, "tsum", "t", "returns the sum of t over all processes. note: you have to assure that all processes call this function.");
+	
+	// Space Time Communicator
+	{
+		using T_SpaceTimeCommunicator = pcl::SpaceTimeCommunicator ;
+		const std::string name = "SpaceTimeCommunicator";
+		reg.add_class_<T_SpaceTimeCommunicator>(name, "SpaceTimeCommunicator", "")
+				.add_constructor()
+				.add_method("split", &T_SpaceTimeCommunicator::split)
+				.add_method("unsplit", &T_SpaceTimeCommunicator::unsplit)
+				.add_method("get_global_rank", &T_SpaceTimeCommunicator::get_global_rank)
+				.add_method("get_spatial_rank", &T_SpaceTimeCommunicator::get_spatial_rank)
+				.add_method("get_temporal_rank", &T_SpaceTimeCommunicator::get_temporal_rank)
+				.add_method("get_global_size", &T_SpaceTimeCommunicator::get_global_size)
+				.add_method("get_spatial_size", &T_SpaceTimeCommunicator::get_spatial_size)
+				.add_method("get_temporal_size", &T_SpaceTimeCommunicator::get_temporal_size)
+				.add_method("sleep", &T_SpaceTimeCommunicator::sleep)
+				.set_construct_as_smart_pointer(true);
+	}
 }
 
 #else // UG_PARALLEL

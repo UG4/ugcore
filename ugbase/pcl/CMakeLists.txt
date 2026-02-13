@@ -47,6 +47,8 @@ set(srcPcl	parallel_archive.cpp
 			pcl_multi_group_communicator.cpp
 			pcl_process_communicator.cpp
 			pcl_util.cpp)
+set(HEADERS
+			space_time_communicator.hpp)
 
 if(BUILD_ONE_LIB)
 	EXPORTSOURCES(ugbase/pcl ${srcPcl})
