@@ -201,6 +201,9 @@ bool ArteExpandFracs3D::run( bool & needToRestart )
 	int splittedEdges = splitInnerFreeFracEdgs();
 
 	UG_LOG("splitted edges " << splittedEdges << std::endl);
+
+//	if( splittedEdges < 0 )
+//		return false;
 //
 //	return false;
 //
@@ -402,12 +405,88 @@ bool ArteExpandFracs3D::splitEdgesOfNeighboredEndingCrossingFracVrtcs()
 						UG_LOG("need to detach markers" << std::endl);
 						detachMarkers();
 
-						vector3 center = CalculateCenter(edg, m_aaPos);
-						UG_LOG("splitting ECCV edge at " << center << std::endl);
+						std::vector<Vertex*> oldEdgesSideVrtcs;
+
+						for( IndexType i = 0; i < 2; i++ )
+						{
+							oldEdgesSideVrtcs.push_back( edg->vertex(i) );
+						}
+
+
+						vector3 centerPos = CalculateCenter(edg, m_aaPos);
+						UG_LOG("splitting ECCV edge at " << centerPos << std::endl);
 						RegularVertex* vrtSE = SplitEdge<RegularVertex>(m_grid, edg, false);
-						m_aaPos[vrtSE] = center;
+						m_aaPos[vrtSE] = centerPos;
 
 						UG_LOG("Edge splitted, please restart process with the thus changed geometry" << std::endl);
+
+						bool constexpr splitTwice = true;
+
+						if( splitTwice )
+						{
+							// TODO FIXME könnte man noch verfeinern, dass man das nur
+							// dort macht, wo es auf derselben fracture liegt......
+
+							std::vector<Edge* > edges2SplitAgain;
+
+							for(Grid::AssociatedEdgeIterator iterEdg  = m_grid.associated_edges_begin(vrtSE);
+									iterEdg != m_grid.associated_edges_end(vrtSE);
+									iterEdg++
+							)
+							{
+								Edge * testEdg = *iterEdg;
+
+								for( Vertex * oldSiVe : oldEdgesSideVrtcs )
+								{
+									if( EdgeContains(testEdg,oldSiVe) )
+									{
+										edges2SplitAgain.push_back(testEdg);
+									}
+								}
+
+							}
+
+							if( edges2SplitAgain.size() != 2 )
+							{
+								UG_LOG("second split round with number " << edges2SplitAgain.size() << std::endl);
+								return false;
+							}
+
+							for( Edge * testEdge : edges2SplitAgain )
+							{
+								Vertex * oldSiVe = nullptr;
+
+								for( IndexType i = 0; i < 2; i++ )
+								{
+									if( testEdge->vertex(i) == vrtSE )
+									{
+										oldSiVe = testEdge->vertex((i+1)%2);
+									}
+								}
+
+								if( ! oldSiVe )
+								{
+									UG_LOG("no counter side " << std::endl);
+									return false;
+								}
+
+								vector3 oldPos = m_aaPos[ oldSiVe ];
+
+								vector3 sumV;
+
+								VecAdd( sumV, oldPos, centerPos);
+
+								vector3 secondSplitMidPt;
+
+								VecScale(secondSplitMidPt, sumV, 0.5);
+
+								UG_LOG("splitting edge second at " << secondSplitMidPt << std::endl);
+								RegularVertex* vrtSecondCenter = SplitEdge<RegularVertex>(m_grid, testEdge, false);
+								m_aaPos[vrtSecondCenter] = secondSplitMidPt;
+
+
+							}
+						}
 
 						return true;
 
@@ -422,6 +501,9 @@ bool ArteExpandFracs3D::splitEdgesOfNeighboredEndingCrossingFracVrtcs()
 	}
 
 	return false;
+
+
+
 
 //	if( numberSplittedEdges > 0 )
 //		UG_LOG("Edge splitted, please restart process with the thus changed geometry, new edges " << numberSplittedEdges << std::endl);
@@ -1180,10 +1262,89 @@ int ArteExpandFracs3D::splitInnerFreeFracEdgs()
 
 		for( Edge * edg : edgesToBeSplitted )
 		{
-			vector3 center = CalculateCenter(edg, m_aaPos);
-			UG_LOG("splitting edge at " << center << std::endl);
-			RegularVertex* vrt = SplitEdge<RegularVertex>(m_grid, edg, false);
-			m_aaPos[vrt] = center;
+			m_sh.assign_subset(edg,m_sh.num_subsets());
+			UG_LOG("EDGE TO SPLIT " << std::endl);
+		}
+
+		for( Edge * edg : edgesToBeSplitted )
+		{
+//			std::vector<Vertex*> oldEdgesSideVrtcs;
+//
+//			for( IndexType i = 0; i < 2; i++ )
+//			{
+//				oldEdgesSideVrtcs.push_back( edg->vertex(i) );
+//			}
+
+			vector3 centerPos = CalculateCenter(edg, m_aaPos);
+			UG_LOG("splitting edge at " << centerPos << std::endl);
+			RegularVertex* vrtCenter = SplitEdge<RegularVertex>(m_grid, edg, false);
+			m_aaPos[vrtCenter] = centerPos;
+
+//			bool constexpr splitTwice = false;
+//
+//			if( splitTwice )
+//			{
+//				std::vector<Edge* > edges2SplitAgain;
+//
+//				for(Grid::AssociatedEdgeIterator iterEdg  = m_grid.associated_edges_begin(vrtCenter);
+//												 iterEdg != m_grid.associated_edges_end(vrtCenter);
+//												 iterEdg++
+//				)
+//				{
+//					Edge * testEdg = *iterEdg;
+//
+//					for( Vertex * oldSiVe : oldEdgesSideVrtcs )
+//					{
+//						if( EdgeContains(testEdg,oldSiVe) )
+//						{
+//							edges2SplitAgain.push_back(testEdg);
+//						}
+//					}
+//
+//				}
+//
+//				if( edges2SplitAgain.size() != 2 )
+//				{
+//					UG_LOG("second split round with number " << edges2SplitAgain.size() << std::endl);
+//					return false;
+//				}
+//
+//				for( Edge * testEdge : edges2SplitAgain )
+//				{
+//					Vertex * oldSiVe = nullptr;
+//
+//					for( IndexType i = 0; i < 2; i++ )
+//					{
+//						if( testEdge->vertex(i) == vrtCenter )
+//						{
+//							oldSiVe = testEdge->vertex((i+1)%2);
+//						}
+//					}
+//
+//					if( ! oldSiVe )
+//					{
+//						UG_LOG("no counter side " << std::endl);
+//						return false;
+//					}
+//
+//					vector3 oldPos = m_aaPos[ oldSiVe ];
+//
+//					vector3 sumV;
+//
+//					VecAdd( sumV, oldPos, centerPos);
+//
+//					vector3 secondSplitMidPt;
+//
+//					VecScale(secondSplitMidPt, sumV, 0.5);
+//
+//					UG_LOG("splitting edge second at " << secondSplitMidPt << std::endl);
+//					RegularVertex* vrtSecondCenter = SplitEdge<RegularVertex>(m_grid, testEdge, false);
+//					m_aaPos[vrtSecondCenter] = secondSplitMidPt;
+//
+//
+//				}
+//			}
+
 			splittedEdges++;
 		}
 
