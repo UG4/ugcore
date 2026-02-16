@@ -143,7 +143,11 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_vrtcsViolatingExpansion(std::vector<Vertex*>()),
 	  m_volsViolatingExpansion(std::vector<Volume*>()),
 	  m_vecVolManifVrtxCombiToShrink4Diams(VecVolManifVrtxCombi()),
-	  m_vecSideDiamElmsDirectCreate(VecSideDiamElemsDirectCreated())
+	  m_vecSideDiamElmsDirectCreate(VecSideDiamElemsDirectCreated()),
+	  m_attVolIsNotFromCrossPt(ABool()),
+	  m_attAccsVolIsNotFromCrossPt(Grid::VolumeAttachmentAccessor<ABool>()),
+	  m_attVolMightBeFromCrossPt(ABool()),
+	  m_attAccsVolMightBeFromCrossPt(Grid::VolumeAttachmentAccessor<ABool>())
 //	  m_diamInfos3D(std::vector<DiamantInfo3D>()),
 //	  m_oldNewVrtcs4Diams(std::vector<VrtxPair>())
 {
@@ -327,6 +331,11 @@ bool ArteExpandFracs3D::run( bool & needToRestart )
 		return false;
 
 	UG_LOG("new elements created " << std::endl);
+
+	if( ! specifyEndCrossCleftAttVols() )
+		return false;
+
+	UG_LOG("specific end cross cleft att vols specified" << std::endl);
 
 	if( ! detachMarkers() )
 		return false;
@@ -1086,6 +1095,18 @@ bool ArteExpandFracs3D::attachMarkers()
 
 	m_vrtxAttAccsVrtxArisesFromExpandedEndingCrossingCleft = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_attAtVrtxIfVrtxArisesFromExpandedEndingCrossingCleft );
 
+	m_attVolIsNotFromCrossPt = ABool();
+
+	m_grid.attach_to_volumes_dv(m_attVolIsNotFromCrossPt, false);
+
+	m_attAccsVolIsNotFromCrossPt = Grid::VolumeAttachmentAccessor<ABool>( m_grid, m_attVolIsNotFromCrossPt );
+
+	m_attVolMightBeFromCrossPt = ABool();
+
+	m_grid.attach_to_volumes_dv(m_attVolMightBeFromCrossPt, false);
+
+	m_attAccsVolMightBeFromCrossPt = Grid::VolumeAttachmentAccessor<ABool>( m_grid, m_attVolMightBeFromCrossPt );
+
 	return true;
 }
 
@@ -1126,6 +1147,10 @@ bool ArteExpandFracs3D::detachMarkers()
 	m_grid.detach_from_volumes( m_attAtVolIfVolTouchesEndingCrossingCleft );
 
 	m_grid.detach_from_vertices( m_attAtVrtxIfVrtxArisesFromExpandedEndingCrossingCleft );
+
+	m_grid.detach_from_volumes( m_attVolIsNotFromCrossPt );
+
+	m_grid.detach_from_volumes( m_attVolMightBeFromCrossPt );
 
 	return true;
 }
@@ -8056,6 +8081,11 @@ bool ArteExpandFracs3D::createNewElements()
 								UG_LOG("adding to shrink standard case did not work " << std::endl);
 								return false;
 							}
+
+						}
+						else
+						{
+							m_sh.assign_subset(expVol, m_sh.num_subsets());
 						}
 
 
@@ -11033,6 +11063,10 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 									return false;
 								}
 							}
+							else
+							{
+								m_sh.assign_subset(expVol, m_sh.num_subsets());
+							}
 						}
 
 						if(expVolTwo)
@@ -11051,6 +11085,12 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 //								UG_LOG("adding exp vol two ecc did not work " << std::endl);
 //								return false;
 //							}
+
+							if(  closedButNotDiamRelevant )
+							{
+								m_sh.assign_subset(expVolTwo, m_sh.num_subsets());
+							}
+
 						}
 
 					}
@@ -11068,6 +11108,8 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 bool ArteExpandFracs3D::addNewVol2Shrink4Diams(std::vector<size_t> const & locVrtInds, Volume * const & oldVol, Volume * const & newVol, Face * const & fac, IndexType subs, bool comesFromEndingCrossingFract )
 {
 	IndexType constexpr maxFacVrtxNum = 3;  // restricts algo to triangular based fractures
+
+	support::addElem(m_vecVolMightBeFromCrossCleftPt, newVol);
 
 	for( auto const & crossVrtx : m_vrtcsCrossingPts )
 	{
@@ -11102,11 +11144,43 @@ bool ArteExpandFracs3D::addNewVol2Shrink4Diams(std::vector<size_t> const & locVr
 						}
 
 						m_vecVolManifVrtxCombiToShrink4Diams.push_back(vmvc);
+
+						m_attAccsVolIsNotFromCrossPt[newVol] = true;
 					}
 				}
 			}
 		}
+		else
+		{
+			m_attAccsVolMightBeFromCrossPt[newVol] = true;
+		}
 	}
+
+	// TODO FIXME hier muss das Problem sein..... HIER
+
+//	for( auto const & crossVrtx : m_vrtcsCrossingPts )
+//	{
+//		//  exclude ending crossing cleft vertices!!!! aber nur, wenn es auf endender Seite ist....
+//		if( ! comesFromEndingCrossingFract )
+//		{
+//			//		for( IndexType i = 0; i < maxVolVrtxNum; i++ )
+//			for( IndexType i = 0; i < maxFacVrtxNum; i++ )
+//			{
+//				IndexType iv = locVrtInds[i];
+//				Vertex * oldVrt = oldVol->vertex(iv);
+//
+//				if( oldVrt == crossVrtx )
+//				{
+//					Vertex * shiVrt = ( m_aaVrtVecVol[oldVol] )[iv];
+//
+//					if( shiVrt )
+//					{
+//						m_sh.assign_subset(newVol, m_sh.num_subsets());
+//					}
+//				}
+//			}
+//		}
+//	}
 
 	return true;
 }
@@ -11137,6 +11211,29 @@ bool ArteExpandFracs3D::createTheDiamonds()
 //
 //
 //	return true;
+}
+
+bool ArteExpandFracs3D::specifyEndCrossCleftAttVols()
+{
+	return true;
+
+	for( Volume * & teVo : m_vecVolMightBeFromCrossCleftPt )
+	{
+		if( teVo )
+		{
+//			if( m_attAccsVolIsNotFromCrossPt[teVo] && m_attAccsVolMightBeFromCrossPt[teVo] )
+			{
+					m_sh.assign_subset(teVo, m_sh.num_subsets());
+			}
+		}
+		else
+		{
+			UG_LOG("tevo does not exist, bizarre" << std::endl);
+			return false;
+		}
+	}
+
+	return true;
 }
 
 } /* namespace arte */

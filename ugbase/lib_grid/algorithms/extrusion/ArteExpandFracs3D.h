@@ -535,6 +535,16 @@ private:
 	using VecSideDiamElemsDirectCreated = std::vector<SideDiamElemsDirectCreated>;
 
 	VecSideDiamElemsDirectCreated m_vecSideDiamElmsDirectCreate;
+
+	std::vector<Volume*> m_vecVolMightBeFromCrossCleftPt;
+
+	ABool m_attVolIsNotFromCrossPt;
+	Grid::VolumeAttachmentAccessor<ABool> m_attAccsVolIsNotFromCrossPt;
+
+	ABool m_attVolMightBeFromCrossPt;
+	Grid::VolumeAttachmentAccessor<ABool> m_attAccsVolMightBeFromCrossPt;
+
+	bool specifyEndCrossCleftAttVols();
 };
 
 // specification has to be declared outside central class context, else compilation error
