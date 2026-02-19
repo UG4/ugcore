@@ -423,6 +423,8 @@ if (NATIVE)
 	add_c_flag ("-march=native -mtune=native")
 endif ()
 
+
+
 # if build type is set print own cflags and flags from build type 
 if(CMAKE_BUILD_TYPE)
 	string(TOUPPER ${CMAKE_BUILD_TYPE} bt_upper)
