@@ -701,6 +701,9 @@ function util.solver.CreateLinearSolver(solverDesc, solverutil)
 		
 	elseif name == "superlu" then
 		linSolver = AgglomeratingSolver(SuperLU());
+
+	elseif name == "amd_bicgstab" then
+		linSolver = AgglomeratingSolver(AMD_BiCGStab());
 	end
 
 	util.solver.CondAbort(linSolver == nil, "Invalid linear solver specified: " .. name)
