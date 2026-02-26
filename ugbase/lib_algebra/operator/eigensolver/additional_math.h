@@ -236,9 +236,9 @@ void PrintMaple(const matrix_type &mat, const char *name)
 }
 
 template<typename T>
-void MemSwap(T &a, T &b)
+void MemSwap(T &a, T &b) noexcept
 {
-	char c[sizeof(T)];
+	char c[sizeof(T)]; // helping buffer - temporarily
 	memcpy(c, &a, sizeof(T));
 	memcpy(&a, &b, sizeof(T));
 	memcpy(&b, c, sizeof(T));

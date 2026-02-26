@@ -224,8 +224,7 @@ class OrderedInterface
 			TElemCmp	m_elemCmp;
 		};
 
-		typedef TContainer<InterfaceEntry, TAlloc<InterfaceEntry> >
-														ElemContainer;
+		typedef TContainer<InterfaceEntry, TAlloc<InterfaceEntry> > ElemContainer;
 
 	public:
 		typedef TType									Type;
@@ -317,8 +316,7 @@ class OrderedInterface
 
 	///	swaps the content of two interfaces.
 	/** m_elements, m_size, m_targetProc and m_idCounter are swapped.*/
-		void swap(OrderedInterface& interface)
-		{
+		void swap(OrderedInterface& interface) noexcept {
 			using std::swap;
 			m_elements.swap(interface.m_elements);
 			swap(m_size, interface.m_size);

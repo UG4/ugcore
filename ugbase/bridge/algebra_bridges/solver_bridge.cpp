@@ -322,8 +322,9 @@ static void Algebra(Registry& reg, string grp)
 	// ExternalSolver
 	{
 		typedef IExternalSolver<TAlgebra> T;
+		typedef IMatrixOperatorInverse<typename TAlgebra::matrix_type, typename TAlgebra::vector_type> TBase;
 		string name = string("ExternalSolver").append(suffix);
-		reg.add_class_<T>(name, grp)
+		reg.add_class_<T,TBase>(name, grp)
 			.add_method("set_disable_preprocessing", &T::set_disable_preprocessing, "", "", "")
 			.add_method("enable_consistent_interfaces", &T::enable_consistent_interfaces, "", "", "");
 

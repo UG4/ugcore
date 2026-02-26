@@ -39,8 +39,7 @@ namespace ug
 {
 
 template <typename TMatrix>
-typename ParallelMatrix<TMatrix>::this_type&
-ParallelMatrix<TMatrix>::operator =(const typename ParallelMatrix<TMatrix>::this_type &M)
+auto ParallelMatrix<TMatrix>::operator =(const this_type &M) -> this_type&
 {
 //	forward to sequential matrices
 	TMatrix::operator= (*dynamic_cast<const TMatrix*>(&M));
@@ -85,12 +84,9 @@ apply(TPVector &res, const TPVector &x) const
 	PROFILE_FUNC_GROUP("algebra");
 //	check types combinations
 	int type = -1;
-	if(has_storage_type(PST_ADDITIVE)
-			&& x.has_storage_type(PST_CONSISTENT)) type = 0;
-	if(has_storage_type(PST_CONSISTENT)
-			&& x.has_storage_type(PST_ADDITIVE)) type = 1;
-	if(has_storage_type(PST_CONSISTENT)
-			&& x.has_storage_type(PST_CONSISTENT)) type = 2;
+	if(has_storage_type(PST_ADDITIVE)   && x.has_storage_type(PST_CONSISTENT)) type = 0;
+	if(has_storage_type(PST_CONSISTENT) && x.has_storage_type(PST_ADDITIVE))   type = 1;
+	if(has_storage_type(PST_CONSISTENT) && x.has_storage_type(PST_CONSISTENT)) type = 2;
 
 //	if no admissible type is found, return error
 	if(type == -1)
@@ -127,12 +123,9 @@ apply_transposed(TPVector &res, const TPVector &x) const
 	PROFILE_FUNC_GROUP("algebra");
 //	check types combinations
 	int type = -1;
-	if(has_storage_type(PST_ADDITIVE)
-			&& x.has_storage_type(PST_CONSISTENT)) type = 0;
-	if(has_storage_type(PST_CONSISTENT)
-			&& x.has_storage_type(PST_ADDITIVE)) type = 1;
-	if(has_storage_type(PST_CONSISTENT)
-			&& x.has_storage_type(PST_CONSISTENT)) type = 2;
+	if(has_storage_type(PST_ADDITIVE)   && x.has_storage_type(PST_CONSISTENT)) type = 0;
+	if(has_storage_type(PST_CONSISTENT) && x.has_storage_type(PST_ADDITIVE))   type = 1;
+	if(has_storage_type(PST_CONSISTENT) && x.has_storage_type(PST_CONSISTENT)) type = 2;
 
 //	if no admissible type is found, return error
 	if(type == -1)
@@ -201,12 +194,9 @@ template<typename matrix_type, typename vector_type>
 ug::ParallelStorageType GetMultType(const ParallelMatrix<matrix_type> &A1, const ParallelVector<vector_type> &x)
 {
 	ug::ParallelStorageType type = PST_UNDEFINED;
-	if(A1.has_storage_type(PST_ADDITIVE)
-			&& x.has_storage_type(PST_CONSISTENT)) type = PST_ADDITIVE; // 0
-	if(A1.has_storage_type(PST_CONSISTENT)
-			&& x.has_storage_type(PST_ADDITIVE)) type = PST_ADDITIVE; // 1
-	if(A1.has_storage_type(PST_CONSISTENT)
-			&& x.has_storage_type(PST_CONSISTENT)) type = PST_CONSISTENT; // 2
+	if(A1.has_storage_type(PST_ADDITIVE)   && x.has_storage_type(PST_CONSISTENT)) type = PST_ADDITIVE; // 0
+	if(A1.has_storage_type(PST_CONSISTENT) && x.has_storage_type(PST_ADDITIVE))   type = PST_ADDITIVE; // 1
+	if(A1.has_storage_type(PST_CONSISTENT) && x.has_storage_type(PST_CONSISTENT)) type = PST_CONSISTENT; // 2
 
 	//	if no admissible type is found, return error
 	if(type == PST_UNDEFINED)

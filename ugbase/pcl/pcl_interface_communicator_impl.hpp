@@ -87,8 +87,7 @@ send_data(int targetProc, const Interface& interface,
 		m_curOutProcs.insert(targetProc);
 
 		commPol.collect(buffer, interface);
-		m_bSendBuffersFixed = m_bSendBuffersFixed
-							&& (commPol.get_required_buffer_size(interface) >= 0);
+		m_bSendBuffersFixed = m_bSendBuffersFixed && (commPol.get_required_buffer_size(interface) >= 0);
 	}
 }
 
@@ -99,7 +98,7 @@ send_data(const Layout& layout, ICommunicationPolicy<TLayout>& commPol)
 {
 	PCL_PROFILE(pcl_IntCom_send_layout_data);
 	if(!layout.empty()){
-	//	through the the category_tag we're able to find the correct send method.
+	//	through the category_tag we're able to find the correct send method.
 		send_data(layout, commPol, typename TLayout::category_tag());
 	}
 }
@@ -123,8 +122,7 @@ send_data(const Layout& layout,
 			m_curOutProcs.insert(layout.proc_id(iter));
 
 			commPol.collect(buffer, layout.interface(iter));
-			m_bSendBuffersFixed = m_bSendBuffersFixed
-				&& (commPol.get_required_buffer_size(layout.interface(iter)) >= 0);
+			m_bSendBuffersFixed = m_bSendBuffersFixed && (commPol.get_required_buffer_size(layout.interface(iter)) >= 0);
 		}
 	}
 
@@ -432,8 +430,7 @@ communicate_and_resume(int tag)
 
 //	note that we won't free the memory in the stream-packs.
 //	we will only reset their write and read pointers.
-	for(BufferMap::iterator iter = m_bufMapIn.begin();
-		iter != m_bufMapIn.end(); ++iter)
+	for(BufferMap::iterator iter = m_bufMapIn.begin(); iter != m_bufMapIn.end(); ++iter)
 	{
 		iter->second.clear();
 	}
@@ -441,8 +438,7 @@ communicate_and_resume(int tag)
 
 //	iterate through all registered extractors and create entries for
 //	the source-processes in the map (by simply 'touching' the entry).
-	for(typename ExtractorInfoList::iterator iter = m_extractorInfos.begin();
-		iter != m_extractorInfos.end(); ++iter)
+	for(typename ExtractorInfoList::iterator iter = m_extractorInfos.begin(); iter != m_extractorInfos.end(); ++iter)
 	{
 		ExtractorInfo& info = *iter;
 		if(info.m_srcProc > -1){

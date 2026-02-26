@@ -54,8 +54,7 @@ namespace ug
 {
 
 template <typename TVector>
-typename ParallelVector<TVector>::this_type&
-ParallelVector<TVector>::operator =(const typename ParallelVector<TVector>::this_type &v)
+auto ParallelVector<TVector>::operator =(const this_type &v) -> this_type&
 {
 	//	forward to sequential vectors
 	TVector::operator=(*dynamic_cast<const TVector*>(&v));
@@ -69,8 +68,7 @@ ParallelVector<TVector>::operator =(const typename ParallelVector<TVector>::this
 }
 
 template <typename TVector>
-typename ParallelVector<TVector>::this_type&
-ParallelVector<TVector>::operator -=(const typename ParallelVector<TVector>::this_type &v)
+auto ParallelVector<TVector>::operator -=(const this_type &v) -> this_type&
 {
 	//	compute storage mask
 	uint mask = get_storage_mask() & v.get_storage_mask();
@@ -91,8 +89,7 @@ ParallelVector<TVector>::operator -=(const typename ParallelVector<TVector>::thi
 }
 
 template <typename TVector>
-typename ParallelVector<TVector>::this_type&
-ParallelVector<TVector>::operator +=(const typename ParallelVector<TVector>::this_type &v)
+auto ParallelVector<TVector>::operator +=(const this_type &v) -> this_type&
 {
 	//	compute parallel storage mask
 	uint mask = get_storage_mask() & v.get_storage_mask();
