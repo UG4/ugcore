@@ -702,9 +702,10 @@ function util.solver.CreateLinearSolver(solverDesc, solverutil)
 	elseif name == "superlu" then
 		linSolver = AgglomeratingSolver(SuperLU());
 
-	elseif name == "amd_bicgstab" then
-		linSolver = AgglomeratingSolver(AMD_BiCGStab());
+	elseif string.sub(name, 1, 4) == "amd_" then
+		linSolver = util.amdsolver.create_solver(name, desc)
 	end
+
 
 	util.solver.CondAbort(linSolver == nil, "Invalid linear solver specified: " .. name)
 	
