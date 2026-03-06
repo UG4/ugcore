@@ -1,5 +1,5 @@
 # Copyright (c) 2009-2015:  G-CSC, Goethe University Frankfurt
-# Author: Sebastian Reiter
+# Author: Sebastian Reiter, small modifications by Markus Knodel
 # 
 # This file is part of UG4.
 # 
@@ -84,6 +84,10 @@ set(srcAlgorithms	algorithms/debug_util.cpp
 					algorithms/extrusion/cylinder_extrusion.cpp
 					algorithms/extrusion/expand_layers.cpp
 					algorithms/extrusion/expand_layers_arte.cpp
+					algorithms/extrusion/expand_layers_arte3D.cpp
+					algorithms/extrusion/ArteExpandFracs3D.cpp
+					algorithms/extrusion/simpleMatrixOps.cpp
+					algorithms/extrusion/DiamondsEstablish3D.cpp					
 					algorithms/projections/overlying_subset_finder.hpp
 					algorithms/projections/z_ray_tracer.hpp
 					refinement/projectors/projection_handler.cpp

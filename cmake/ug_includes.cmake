@@ -126,8 +126,16 @@ set(precisionOptions "single, double")
 set(profilerOptions "None, Shiny, Scalasca, Vampir, ScoreP")
 set(profilerDefault "None")
 
+# Values 
+set(coverageOptions "NONE, GCOV")
+set(coverageDefault "NONE")
+
 # Option to set frequency
 set(cpufreqDefault OFF)
+
+# Options for sanitizers
+set(sanitizerOptions "OFF or combinations of MSAN, ASAN, UBSAN, LSAN")
+set(sanitizerDefault OFF)
 
 # If we run the script the first time, search for MPI to determine the default value.
 # Note that you may use -DMPI_DIR=... to set a custom MPI path.
@@ -194,6 +202,7 @@ option(USE_AUTODIFF "Use Autodiff" OFF)
 option(USE_PYBIND11 "Use PYBIND11" OFF)
 option(USE_JSON "Use JSON" OFF)
 option(USE_XEUS "Use XEUS" OFF)
+option(USE_SANITIZER "Use " OFF)
 
 ################################################################################
 # set default values for pseudo-options
@@ -220,6 +229,10 @@ endif(NOT PRECISION)
 if(NOT PROFILER)
 	set(PROFILER ${profilerDefault})
 endif(NOT PROFILER)
+
+if(NOT CODE_COVERAGE)
+	set(CODE_COVERAGE ${coverageDefault})
+endif(NOT CODE_COVERAGE)
 
 if(NOT CPU_FREQ)
     set(CPU_FREQ ${cpufreqDefault})
@@ -266,6 +279,7 @@ message(STATUS "Info: PARALLEL:          ${PARALLEL} (options are: ON, OFF)")
 message(STATUS "Info: PCL_DEBUG_BARRIER: ${PCL_DEBUG_BARRIER} (options are: ON, OFF)")
 message(STATUS "Info: PROFILER:          ${PROFILER} (options are: ${profilerOptions})")
 message(STATUS "Info: PROFILE_PCL:       ${PROFILE_PCL} (options are: ON, OFF)")
+message(STATUS "Info: CODE_COVERAGE:     ${CODE_COVERAGE} (options are: ${coverageOptions})")
 message(STATUS "Info: CPU_FREQ:          ${CPU_FREQ} (options are: ON, OFF)")
 message(STATUS "Info: PROFILE_BRIDGE:    ${PROFILE_BRIDGE} (options are: ON, OFF)")
 message(STATUS "Info: LAPACK:            ${LAPACK} (options are: ON, OFF)")
@@ -282,6 +296,7 @@ message(STATUS "Info: USE_JSON:          ${USE_JSON} (options are: ON, OFF)")
 message(STATUS "Info: USE_XEUS:          ${USE_XEUS} (options are: ON, OFF)")
 message(STATUS "Info: USE_PYBIND11:      ${USE_PYBIND11} (options are: ON, OFF)")
 message(STATUS "Info: USE_AUTODIFF:      ${USE_AUTODIFF} (options are: ON, OFF)")
+message(STATUS "Info: USE_SANITIZER:     ${USE_SANITIZER} (options are: ${sanitizerOptions})")
 message(STATUS "")
 message(STATUS "Info: C   Compiler: ${CMAKE_C_COMPILER} (ID: ${CMAKE_C_COMPILER_ID})")
 message(STATUS "Info: C++ Compiler: ${CMAKE_CXX_COMPILER} (ID: ${CMAKE_CXX_COMPILER_ID})")
@@ -417,6 +432,9 @@ endif()
 # PROFILER
 include(${UG_ROOT_CMAKE_PATH}/ug/profiler.cmake)
 
+########################################
+# CODE_COVERAGE
+include(${UG_ROOT_CMAKE_PATH}/ug/code_coverage.cmake)
 
 ########################################
 # PCL_DEBUG_BARRIER
@@ -444,6 +462,8 @@ include(${UG_ROOT_CMAKE_PATH}/ug/pybind11.cmake)
 include(${UG_ROOT_CMAKE_PATH}/ug/autodiff.cmake)
 # XEUS
 include(${UG_ROOT_CMAKE_PATH}/ug/xeus.cmake)
+# Memory sanitizer
+include(${UG_ROOT_CMAKE_PATH}/ug/sanitizer.cmake)
 
 ########################################
 # buildAlgebra

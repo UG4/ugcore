@@ -197,7 +197,7 @@ else(STATIC_BUILD)
 	target_link_libraries (${targetExecutableName} ${targetLibraryName})
 	target_link_libraries(${targetExecutableName} ${ugShellDependencies})
 endif(STATIC_BUILD)
-
+target_enable_sanitizers(${targetExecutableName} ${USE_SANITIZER})
 
 # CPack specific
 #set_target_properties(${targetExecutableName} PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)

@@ -1665,6 +1665,13 @@ public:
 			UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot prepare timestep.");
 		}
 
+	//	finish element loop
+		try
+		{
+			Eval.finish_elem_loop();
+		}
+		UG_CATCH_THROW("AssembleMassMatrix: Cannot finish element loop.");
+		
 		}
 		UG_CATCH_THROW("(instationary) PrepareTimestep: Cannot create Data Evaluator.");
 	}
@@ -1815,8 +1822,70 @@ public:
 			UG_CATCH_THROW("(instationary) FinishTimestepElem: Cannot finish timestep.");
 		}
 
+	//	finish element loop
+		try
+		{
+			Eval.finish_elem_loop();
+		}
+		UG_CATCH_THROW("AssembleMassMatrix: Cannot finish element loop.");
+		
 		}
 		UG_CATCH_THROW("(instationary) FinishTimestepElem: Cannot create Data Evaluator");
+	}
+
+////////////////////////////////////////////////////////////////////////////////
+// Init. all exports (an optional operation, to use the exports for plotting etc.)
+////////////////////////////////////////////////////////////////////////////////
+
+public:
+	/**
+	 * This function finalizes the global discretization in a time-stepping scheme
+	 * by calling the "finish_timestep_elem" methods of all passed element
+	 * discretizations on one given subset.
+	 * (This version processes elements in a given interval.)
+	 *
+	 * \param[in]		vElemDisc		element discretizations
+	 * \param[in]		dd				DoF Distribution
+	 * \param[in]		iterBegin		element iterator
+	 * \param[in]		iterEnd			element iterator
+	 * \param[in]		si				subset index
+	 * \param[in]		bNonRegularGrid flag to indicate if non regular grid is used
+	 * \param[in]		bAsTimeDependent flag to simulate the instationary case for the initialization
+	 */
+	template <typename TElem, typename TIterator>
+	static void
+	InitAllExports(const std::vector<IElemDisc<domain_type>*>& vElemDisc,
+				   ConstSmartPtr<DoFDistribution> dd,
+				   TIterator iterBegin,
+				   TIterator iterEnd,
+				   int si, bool bNonRegularGrid, bool bAsTimeDependent)
+	{
+	//	check if there are any elements at all, otherwise return immediately
+		if(iterBegin == iterEnd) return;
+
+	//	reference object id
+		static const ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
+
+	//	dummy local time series (only to simulate the instationary case for the initialization)
+		LocalVectorTimeSeries locTimeSeries;
+		
+	//	prepare for given elem discs
+		try
+		{
+		DataEvaluator<domain_type> Eval(MASS | STIFF | RHS,
+						   vElemDisc, dd->function_pattern(), bNonRegularGrid,
+						   bAsTimeDependent? &locTimeSeries : NULL);
+		Eval.set_time_point(0);
+
+	//	prepare loop
+		Eval.prepare_elem_loop(id, si);
+
+
+	//	finish element loop
+		Eval.finish_elem_loop();
+		
+		}
+		UG_CATCH_THROW("InitAllExports: Data Evaluator failed");
 	}
 
 ////////////////////////////////////////////////////////////////////////////////

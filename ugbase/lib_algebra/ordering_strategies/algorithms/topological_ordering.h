@@ -30,8 +30,8 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_TOPOLOGICAL_ORDERING__
-#define __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_TOPOLOGICAL_ORDERING__
+#ifndef UG_BASE_LIB_ALGEBRA_ORDERING_STRATEGIES_ALGORITHMS_TOPOLOGICAL_ORDERING_H
+#define UG_BASE_LIB_ALGEBRA_ORDERING_STRATEGIES_ALGORITHMS_TOPOLOGICAL_ORDERING_H
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
@@ -47,7 +47,7 @@
 #include <deque>
 
 #include "IOrderingAlgorithm.h"
-#include "util.cpp"
+#include "util.h"
 
 //debug
 #include "common/error.h"
@@ -288,6 +288,6 @@ private:
 	O_t o;
 };
 
-} //namespace
+}
 
-#endif //guard
+#endif

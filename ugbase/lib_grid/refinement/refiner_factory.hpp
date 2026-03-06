@@ -43,6 +43,10 @@
 #include "lib_grid/refinement/ref_mark_adjusters/horizontal_anisotropy_adjuster.h"
 #include "lib_grid/refinement/ref_mark_adjusters/shadow_copy_adjuster.h"
 
+#ifdef UG_PARALLEL
+#include "lib_grid/parallelization/parallel_refinement/parallel_refinement.h"
+#endif
+
 namespace ug{
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -68,5 +72,6 @@ static SmartPtr<IRefiner> GlobalDomainRefiner(TDomain& dom)
 						dom.refinement_projector()));
 }
 
-}
-#endif
+
+} // namespace ug
+#endif //__H__UG__DOMAIN_REFINEMENT_BRIDGE_HPP__

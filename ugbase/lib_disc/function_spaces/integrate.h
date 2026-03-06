@@ -1230,9 +1230,26 @@ number L2Error(const char* ExactSol,
 {
 	return L2Error(ExactSol, spGridFct, cmp, time, quadOrder, NULL);
 }
+#endif //UG_FOR_LUA
+
+
+
+#ifdef UG_DEBUG
+// True, if max norm is less than SMALL.
+template <int worldDim, int elemDim>
+void CheckGeneralizedInverse(const MathMatrix<elemDim, worldDim> &JT, const MathMatrix<worldDim, elemDim> &JTInv)
+{
+	if (worldDim==elemDim) return;
+
+	MathMatrix<worldDim, elemDim> myTmp;
+	GeneralizedInverse(myTmp, JT); //old algorithms with Inverse, but Inverse is only defined for NxN Matrix
+	MatSubtract(myTmp, JTInv, myTmp);
+
+	UG_ASSERT(MatMaxNorm(myTmp)<SMALL,
+		"The inverse matrix is not identity to the map jacobian transposed inverse.");
+
+}
 #endif
-
-
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1294,6 +1311,9 @@ class H1ErrorIntegrand
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
 			const ReferenceObjectID roid = pElem->reference_object_id();
 
+			DimReferenceMapping<elemDim, worldDim>& map
+				= ReferenceMappingProvider::get<elemDim, worldDim>(roid, vCornerCoords);
+
 			try{
 		//	get trial space
 			const LocalShapeFunctionSet<elemDim>& rTrialSpace =
@@ -1344,7 +1364,12 @@ class H1ErrorIntegrand
 			//	compute global gradient
 				MathVector<worldDim> approxGradIP;
 				MathMatrix<worldDim, elemDim> JTInv;
-				Inverse(JTInv, vJT[ip]);
+				map.jacobian_transposed_inverse(JTInv, vLocIP[ip]); //Inverse(JTInv, vJT[ip]);
+				
+#ifdef UG_DEBUG
+				CheckGeneralizedInverse<worldDim,elemDim>(vJT[ip], JTInv);
+#endif //UG_DEBUG
+
 				MatVecMult(approxGradIP, JTInv, locTmp);
 
 			//	get squared of difference
@@ -1987,6 +2012,9 @@ class H1SemiIntegrand
 			const ReferenceObjectID roid = pElem->reference_object_id();
 			const TGridFunction &gridFct= m_scalarData.grid_function();
 
+			DimReferenceMapping<elemDim, worldDim>& map
+				= ReferenceMappingProvider::get<elemDim, worldDim>(roid, vCornerCoords);
+
 			typedef typename weight_type::data_type ipdata_type;
 
 			std::vector<ipdata_type> elemWeights(numIP, MathMatrix<worldDim, worldDim>());
@@ -2061,7 +2089,12 @@ class H1SemiIntegrand
 			//	compute gradient
 				MathVector<worldDim> approxGradIP;
 				MathMatrix<worldDim, elemDim> JTInv;
-				Inverse(JTInv, vJT[ip]);
+				map.jacobian_transposed_inverse(JTInv, vLocIP[ip]);//Inverse(JTInv, vJT[ip]);
+
+#ifdef UG_DEBUG
+				CheckGeneralizedInverse<worldDim,elemDim>(vJT[ip], JTInv);
+#endif //UG_DEBUG
+
 				MatVecMult(approxGradIP, JTInv, tmpVec);
 
 			//	get norm squared
@@ -2237,6 +2270,8 @@ class H1SemiDistIntegrand : public StdIntegrand<number, TGridFunction::dim, H1Se
 		//	get reference Mapping
 			DimReferenceMapping<elemDim, worldDim>& map
 				= ReferenceMappingProvider::get<elemDim, worldDim>(coarseROID, vCornerCoarse);
+			DimReferenceMapping<elemDim, worldDim>& mapF
+				= ReferenceMappingProvider::get<elemDim, worldDim>(fineROID, vCornerCoords);
 
 			std::vector<MathVector<elemDim> > vCoarseLocIP;
 			vCoarseLocIP.resize(numIP);
@@ -2318,7 +2353,12 @@ class H1SemiDistIntegrand : public StdIntegrand<number, TGridFunction::dim, H1Se
 			//	compute global gradient
 				MathVector<worldDim> fineGradIP;
 				MathMatrix<worldDim, elemDim> fineJTInv;
-				Inverse(fineJTInv, vJT[ip]);
+				mapF.jacobian_transposed_inverse(fineJTInv, vFineLocIP[ip]);//Inverse(fineJTInv, vJT[ip]);
+
+#ifdef UG_DEBUG
+				CheckGeneralizedInverse<worldDim,elemDim>(vJT[ip], fineJTInv);
+#endif //UG_DEBUG
+
 				MatVecMult(fineGradIP, fineJTInv, fineLocTmp);
 
 			//	compute global gradient
@@ -2459,6 +2499,9 @@ class H1EnergyIntegrand
 			const ReferenceObjectID roid = pElem->reference_object_id();
 			const TGridFunction &gridFct= m_scalarData.grid_function();
 
+			DimReferenceMapping<elemDim, worldDim>& map
+				= ReferenceMappingProvider::get<elemDim, worldDim>(roid, vCornerCoords);
+
 			typedef typename weight_type::data_type ipdata_type;
 
 			std::vector<ipdata_type> elemWeights(numIP, MathMatrix<worldDim, worldDim>());
@@ -2533,7 +2576,13 @@ class H1EnergyIntegrand
 			//	compute gradient
 				MathVector<worldDim> approxGradIP;
 				MathMatrix<worldDim, elemDim> JTInv;
-				Inverse(JTInv, vJT[ip]);
+				map.jacobian_transposed_inverse(JTInv, vLocIP[ip]);//Inverse(JTInv, vJT[ip]);
+
+#ifdef UG_DEBUG
+				CheckGeneralizedInverse<worldDim,elemDim>(vJT[ip], JTInv);
+#endif //UG_DEBUG
+
+
 				MatVecMult(approxGradIP, JTInv, tmpVec);
 
 			//	get norm squared
@@ -2710,6 +2759,8 @@ class H1EnergyDistIntegrand
 		//	get reference Mapping
 			DimReferenceMapping<elemDim, worldDim>& map
 				= ReferenceMappingProvider::get<elemDim, worldDim>(coarseROID, vCornerCoarse);
+			DimReferenceMapping<elemDim, worldDim>& mapF
+				= ReferenceMappingProvider::get<elemDim, worldDim>(fineROID, vCornerCoords);
 
 			std::vector<MathVector<elemDim> > vCoarseLocIP;
 			vCoarseLocIP.resize(numIP);
@@ -2791,20 +2842,28 @@ class H1EnergyDistIntegrand
 			//	compute global D*gradient
 				MathVector<worldDim> fineGradIP;
 				MathMatrix<worldDim, elemDim> fineJTInv;
-				Inverse(fineJTInv, vJT[ip]);
+				mapF.jacobian_transposed_inverse(fineJTInv, vFineLocIP[ip]);//Inverse(fineJTInv, vJT[ip]);
+
+#ifdef UG_DEBUG
+				CheckGeneralizedInverse<worldDim,elemDim>(vJT[ip], fineJTInv);
+#endif //UG_DEBUG
+
+
 				MatVecMult(fineGradIP, fineJTInv, fineLocTmp);
-				MatVecMult(fineLocTmp, elemWeights[ip], fineGradIP);
+				MathVector<worldDim> fineWorldLocTmp(0.0);
+				MatVecMult(fineWorldLocTmp, elemWeights[ip], fineGradIP);
 
 			//	compute global D*gradient
 				MathVector<worldDim> coarseGradIP;
 				MathMatrix<worldDim, elemDim> coarseJTInv;
 				map.jacobian_transposed_inverse(coarseJTInv, vCoarseLocIP[ip]);
 				MatVecMult(coarseGradIP, coarseJTInv, coarseLocTmp);
-				MatVecMult(coarseLocTmp, elemWeights[ip], coarseGradIP);
+				MathVector<worldDim> coarseWorldLocTmp(0.0);
+				MatVecMult(coarseWorldLocTmp, elemWeights[ip], coarseGradIP);
 
 			//	get squared difference
-				vValue[ip] = VecDistanceSq(fineLocTmp, coarseLocTmp);
-
+				vValue[ip] = VecDistanceSq(fineWorldLocTmp, coarseWorldLocTmp);
+				//vValue[ip] = VecDistanceSq(fineGradIP, coarseGradIP, elemWeights[ip]);
 			}
 
 			}
@@ -2893,6 +2952,9 @@ class H1NormIntegrand
 		//	get reference object id (i.e. Triangle, Quadrilateral, Tetrahedron, ...)
 			const ReferenceObjectID roid = pElem->reference_object_id();
 
+			DimReferenceMapping<elemDim, worldDim>& map
+				= ReferenceMappingProvider::get<elemDim, worldDim>(roid, vCornerCoords);
+
 			try{
 		//	get trial space
 			const LocalShapeFunctionSet<elemDim>& rTrialSpace =
@@ -2936,7 +2998,12 @@ class H1NormIntegrand
 			//	compute global gradient
 				MathVector<worldDim> approxGradIP;
 				MathMatrix<worldDim, elemDim> JTInv;
-				RightInverse(JTInv, vJT[ip]);
+				map.jacobian_transposed_inverse(JTInv, vLocIP[ip]);//RightInverse(JTInv, vJT[ip]);
+
+#ifdef UG_DEBUG
+				CheckGeneralizedInverse<worldDim,elemDim>(vJT[ip], JTInv);
+#endif //UG_DEBUG
+
 				MatVecMult(approxGradIP, JTInv, locTmp);
 
 			//	get squared of difference
@@ -3076,6 +3143,8 @@ class H1DistIntegrand
 		//	get Reference Mapping
 			DimReferenceMapping<elemDim, worldDim>& map
 				= ReferenceMappingProvider::get<elemDim, worldDim>(coarseROID, vCornerCoarse);
+			DimReferenceMapping<elemDim, worldDim>& mapF
+				= ReferenceMappingProvider::get<elemDim, worldDim>(fineROID, vCornerCoords);
 
 			std::vector<MathVector<elemDim> > vCoarseLocIP;
 			vCoarseLocIP.resize(numIP);
@@ -3125,7 +3194,13 @@ class H1DistIntegrand
 			//	compute global gradient
 				MathVector<worldDim> fineGradIP;
 				MathMatrix<worldDim, elemDim> fineJTInv;
-				RightInverse(fineJTInv, vJT[ip]);
+				mapF.jacobian_transposed_inverse(fineJTInv, vFineLocIP[ip]);//RightInverse(fineJTInv, vJT[ip]);
+
+#ifdef UG_DEBUG
+				CheckGeneralizedInverse<worldDim,elemDim>(vJT[ip], fineJTInv);
+#endif //UG_DEBUG
+
+
 				MatVecMult(fineGradIP, fineJTInv, fineLocTmp);
 
 			//	compute global gradient

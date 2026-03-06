@@ -31,13 +31,13 @@
  */
 
 
-#ifndef __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_NATIVE_CUTHILL_MCKEE_ORDERING__
-#define __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_NATIVE_CUTHILL_MCKEE_ORDERING__
+#ifndef UG_BASE_LIB_ALGEBRA_ORDERING_STRATEGIES_ALGORITHMS_NATIVE_CUTHILL_MCKEE_H
+#define UG_BASE_LIB_ALGEBRA_ORDERING_STRATEGIES_ALGORITHMS_NATIVE_CUTHILL_MCKEE_H
 
 #include <vector>
 
 #include "IOrderingAlgorithm.h"
-#include "util.cpp"
+#include "util.h"
 
 //debug
 #include "common/error.h"
@@ -179,6 +179,6 @@ private:
 };
 
 
-} // end namespace ug
+}
 
 #endif

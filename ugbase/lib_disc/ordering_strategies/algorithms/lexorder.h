@@ -41,7 +41,7 @@
 #include "lib_disc/function_spaces/grid_function.h"
 
 #include "lib_algebra/ordering_strategies/algorithms/IOrderingAlgorithm.h"
-#include "lib_algebra/ordering_strategies/algorithms/util.cpp"
+#include "lib_algebra/ordering_strategies/algorithms/util.h"
 #include "lib_disc/function_spaces/dof_position_util.h"
 
 #include "common/error.h"

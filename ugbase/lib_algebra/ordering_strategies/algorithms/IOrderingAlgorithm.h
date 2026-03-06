@@ -30,8 +30,8 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_IORDERING_ALGORITHM__
-#define __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_IORDERING_ALGORITHM__
+#ifndef UG_BASE_LIB_ALGEBRA_ORDERING_STRATEGIES_ALGORITHMS_IORDERINGALGORITHM_H
+#define UG_BASE_LIB_ALGEBRA_ORDERING_STRATEGIES_ALGORITHMS_IORDERINGALGORITHM_H
 
 #include "common/util/smart_pointer.h"
 
@@ -76,6 +76,6 @@ public:
 	virtual const char* name() const = 0;
 };
 
-} //namespace
+}
 
-#endif //guard
+#endif

@@ -49,6 +49,13 @@ function(add_cxx_flag flag)
 	add_cpp_flag(${flag})
 endfunction(add_cxx_flag)
 
+# add multiple flags for c and c++ language
+function (add_cxx_flags flags)
+	foreach(flag IN LISTS flags)
+		add_cxx_flag(${flag})
+	endforeach()
+endfunction(add_cxx_flags)
+
 ################################################################################
 # Used to clear c/cxx flags. Handles environment variables CXX_FLAGS and C_FLAGS
 function(reset_cxx_flags)

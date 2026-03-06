@@ -48,7 +48,7 @@
 #include "lib_disc/spatial_disc/user_data/user_data.h"
 
 #include "lib_algebra/ordering_strategies/algorithms/IOrderingAlgorithm.h"
-#include "lib_algebra/ordering_strategies/algorithms/util.cpp"
+#include "lib_algebra/ordering_strategies/algorithms/util.h"
 
 #include <assert.h>
 #include "common/error.h"

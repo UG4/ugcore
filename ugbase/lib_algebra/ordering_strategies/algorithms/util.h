@@ -1,6 +1,6 @@
 
-#ifndef __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_UTIL__
-#define __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_UTIL__
+#ifndef UG_BASE_LIB_ALGEBRA_ORDERING_STRATEGIES_ALGORITHMS_UTIL_H
+#define UG_BASE_LIB_ALGEBRA_ORDERING_STRATEGIES_ALGORITHMS_UTIL_H
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
@@ -51,6 +51,6 @@ bool is_permutation(O_t &o){
 
 #endif
 
-} //namespace
+}
 
-#endif //guard
+#endif

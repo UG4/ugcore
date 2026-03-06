@@ -1,0 +1,31 @@
+stages:
+  - analyze
+
+cppcheck:
+  stage: analyze
+  image: gcc:latest
+  before_script:
+    - apt-get update && apt-get install -y cppcheck python3 python3-pip pipx
+    - pipx ensurepath
+    # Make sure pipx bin path is on PATH
+    - export PATH="$PATH:$(python3 -m site --user-base)/bin"
+
+
+  script:
+    # Run cppcheck (XML and JSON)
+    - pipx install cppcheck-codequality 
+    - cppcheck --enable=all --inconclusive --xml --xml-version=2 ugbase/ 2> cppcheck.xml
+    # - cppcheck-codequality --base-dir ugbase/ --input-file cppcheck.xml --output-file cppcheck.json
+    # Run cpplint.
+    - pipx install cpplint
+
+  artifacts:
+    # Code quality JSON for inline MR annotations
+    # reports:
+    #  codequality: cppcheck.json
+    
+    # Keep full XML as downloadable artifact
+    paths:
+      - cppcheck.xml
+    expire_in: 1 week
+  allow_failure: true

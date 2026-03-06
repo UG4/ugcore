@@ -460,8 +460,10 @@ static void Dimension(Registry& reg, string grp)
 			string name = string("CompositeUserNumber").append(dimSuffix);
 			typedef CompositeUserData<number, dim, void> T;
 			reg.add_class_<T,typename T::base_type>(name, grp)
-				.template add_constructor<void (*)(bool) >("")
-				.add_method("add", &T::add)
+				.template add_constructor<void (*)()>()
+				.template add_constructor<void (*)(bool)>("continuous")
+				.add_method("add", static_cast<void (T::*)(int, typename T::ref_type)>(&T::add), "assign a user data object to a subset index", "si#userdata")
+				.add_method("add", static_cast<void (T::*)(ConstSmartPtr<ISubsetHandler>, const char *, typename T::ref_type)>(&T::add), "assign a user data object to subsets by names", "names#userdata")
 				.add_method("has", &T::has)
 				.add_method("get", &T::get)
 				.add_method("is_coupled", &T::is_coupled)
@@ -476,8 +478,10 @@ static void Dimension(Registry& reg, string grp)
 			string name = string("CompositeUserVector").append(dimSuffix);
 			typedef CompositeUserData<MathVector<dim>, dim, void> T;
 			reg.add_class_<T,typename T::base_type>(name, grp)
-				.template add_constructor<void (*)(bool) >("")
-				.add_method("add", &T::add)
+				.template add_constructor<void (*)()>()
+				.template add_constructor<void (*)(bool)>("continuous")
+				.add_method("add", static_cast<void (T::*)(int, typename T::ref_type)>(&T::add), "assign a user data object to a subset index", "si#userdata")
+				.add_method("add", static_cast<void (T::*)(ConstSmartPtr<ISubsetHandler>, const char *, typename T::ref_type)>(&T::add), "assign a user data object to subsets by names", "names#userdata")
 				.add_method("has", &T::has)
 				.add_method("get", &T::get)
 				.add_method("is_coupled", &T::is_coupled)
@@ -579,6 +583,35 @@ static void Domain(Registry& reg, string grp)
 			.template add_constructor<void (*)(SmartPtr<TDomain>, SmartPtr<TBase>)>("Domain#Data")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "OutNormCmp", tag);
+	}
+	
+//	User data for evaluation of scaled full-dimensional vector fields on hypersurfaces
+	{
+		string name = string("ScaledOutNormCmp").append(suffix);
+		typedef ScaledOutNormCmp<TDomain> T;
+		typedef UserData<MathVector<dim>, dim> TBase;
+		typedef UserData<number, dim> TScale;
+		
+		reg.add_class_<T, TBase> (name, grp)
+			.template add_constructor<void (*)(SmartPtr<TDomain>, SmartPtr<TScale>, SmartPtr<TBase>, const char*)>("Domain#Scaling#Vector#Subsets")
+			.template add_constructor<void (*)(SmartPtr<TDomain>, SmartPtr<TScale>, SmartPtr<TBase>)>("Domain#Scaling#Vector")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ScaledOutNormCmp", tag);
+	}
+
+//	User data for evaluation of scaled flux of a vector fields on hypersurfaces
+	{
+		string name = string("ScaledFluxData").append(suffix);
+		typedef ScaledFluxData<TDomain> T;
+		typedef UserData<number, dim> TBase;
+		typedef UserData<MathVector<dim>, dim> TVec;
+		typedef UserData<number, dim> TScale;
+		
+		reg.add_class_<T, TBase> (name, grp)
+			.template add_constructor<void (*)(SmartPtr<TDomain>, SmartPtr<TScale>, SmartPtr<TVec>, const char*)>("Domain#Scaling#Vector#Subsets")
+			.template add_constructor<void (*)(SmartPtr<TDomain>, SmartPtr<TScale>, SmartPtr<TVec>)>("Domain#Scaling#Vector")
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ScaledFluxData", tag);
 	}
 
 }

@@ -30,8 +30,8 @@
  * GNU Lesser General Public License for more details.
  */
 
-#ifndef __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_SCC_ORDERING__
-#define __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_SCC_ORDERING__
+#ifndef UG_BASE_LIB_ALGEBRA_ORDERING_STRATEGIES_ALGORITHMS_SCC_ORDERING_H
+#define UG_BASE_LIB_ALGEBRA_ORDERING_STRATEGIES_ALGORITHMS_SCC_ORDERING_H
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
@@ -41,8 +41,8 @@
 #include <boost/graph/strong_components.hpp>
 
 #include "IOrderingAlgorithm.h"
-#include "topological_ordering.cpp"
-#include "util.cpp"
+#include "topological_ordering.h"
+#include "util.h"
 #include "lib_algebra/algebra_common/permutation_util.h"
 
 //debug
@@ -233,7 +233,7 @@ private:
 };
 
 
-} //namespace
+}
 
 
-#endif //guard
+#endif

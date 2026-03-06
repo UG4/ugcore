@@ -1,5 +1,3 @@
-#ifndef __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_NATIVE_CUTHILL_MCKEE_ORDERING_CPP__
-#define __UG__LIB_ALGEBRA__ORDERING_STRATEGIES_ALGORITHMS_NATIVE_CUTHILL_MCKEE_ORDERING_CPP__
 
 #include "common/common.h"
 #include "common/profiler/profiler.h"
@@ -294,5 +292,3 @@ void ComputeCuthillMcKeeOrder(std::vector<size_t>& vNewIndex,
 }
 
 }
-
-#endif //guard

@@ -44,7 +44,7 @@
 #include "lib_algebra/lib_algebra.h"
 
 // ordering algorithms
-#include "lib_algebra/ordering_strategies/algorithms/ordering_algorithms.cpp"
+#include "lib_algebra/ordering_strategies/algorithms/ordering_algorithms.h"
 
 using namespace std;
 
