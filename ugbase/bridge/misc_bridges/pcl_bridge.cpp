@@ -116,6 +116,9 @@ static vector<T> ParallelVecSum(const vector<T>& t)
 	return tmp;
 }
 
+static bool ug_parallel()
+{ return true; }
+
 
 void RegisterBridge_PCL(Registry& reg, string parentGroup)
 {
@@ -151,6 +154,7 @@ void RegisterBridge_PCL(Registry& reg, string parentGroup)
 	reg.add_function("ParallelVecMin", &ParallelVecMin<double>, grp, "tmax", "t", "returns the minimum of t over all processes. note: you have to assure that all processes call this function.");
 	reg.add_function("ParallelVecMax", &ParallelVecMax<double>, grp, "tmin", "t", "returns the maximum of t over all processes. note: you have to assure that all processes call this function.");
 	reg.add_function("ParallelVecSum", &ParallelVecSum<double>, grp, "tsum", "t", "returns the sum of t over all processes. note: you have to assure that all processes call this function.");
+	reg.add_function("UG_PARALLEL", &ug_parallel, grp);
 }
 
 #else // UG_PARALLEL
@@ -201,6 +205,10 @@ bool AllProcsTrueDUMMY(bool bTrue)
 	return bTrue;
 }
 
+static bool ug_parallel()
+{ return false; }
+
+
 void RegisterBridge_PCL(Registry& reg, string parentGroup)
 {
 	string grp(parentGroup);
@@ -231,12 +239,12 @@ void RegisterBridge_PCL(Registry& reg, string parentGroup)
 	reg.add_function("ParallelMin", &ParallelMinDUMMY<double>, grp, "tmax", "t", "returns the maximum of t over all processes. note: you have to assure that all processes call this function.");
 	reg.add_function("ParallelMax", &ParallelMaxDUMMY<double>, grp, "tmin", "t", "returns the minimum of t over all processes. note: you have to assure that all processes call this function.");
 	reg.add_function("ParallelSum", &ParallelSumDUMMY<double>, grp, "tsum", "t", "returns the sum of t over all processes. note: you have to assure that all processes call this function.");
+	reg.add_function("UG_PARALLEL", &ug_parallel, grp);
 }
-
 #endif //UG_PARALLEL
 
 // end group pcl_bridge
 /// \}
 
-}// end of namespace
-}// end of namespace
+}// end of namespace bridge
+}// end of namespace ug
