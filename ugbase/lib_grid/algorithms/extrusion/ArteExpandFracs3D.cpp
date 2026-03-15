@@ -143,11 +143,12 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_vrtcsViolatingExpansion(std::vector<Vertex*>()),
 	  m_volsViolatingExpansion(std::vector<Volume*>()),
 	  m_vecVolManifVrtxCombiToShrink4Diams(VecVolManifVrtxCombi()),
-	  m_vecSideDiamElmsDirectCreate(VecSideDiamElemsDirectCreated()),
-	  m_attVolIsNotFromCrossPt(ABool()),
-	  m_attAccsVolIsNotFromCrossPt(Grid::VolumeAttachmentAccessor<ABool>()),
-	  m_attVolMightBeFromCrossPt(ABool()),
-	  m_attAccsVolMightBeFromCrossPt(Grid::VolumeAttachmentAccessor<ABool>())
+	  m_vecSideDiamElmsDirectCreate(VecSideDiamElemsDirectCreated())
+	  // m_vecVolMightBeFromCrossCleftPt(std::vector<Volume*>)
+//	  m_attVolIsNotFromCrossPt(ABool())
+//	  m_attAccsVolIsNotFromCrossPt(Grid::VolumeAttachmentAccessor<ABool>()),
+//	  m_attVolMightBeFromCrossPt(ABool()),
+//	  m_attAccsVolMightBeFromCrossPt(Grid::VolumeAttachmentAccessor<ABool>())
 //	  m_diamInfos3D(std::vector<DiamantInfo3D>()),
 //	  m_oldNewVrtcs4Diams(std::vector<VrtxPair>())
 {
@@ -332,10 +333,10 @@ bool ArteExpandFracs3D::run( bool & needToRestart )
 
 	UG_LOG("new elements created " << std::endl);
 
-	if( ! specifyEndCrossCleftAttVols() )
-		return false;
-
-	UG_LOG("specific end cross cleft att vols specified" << std::endl);
+//	if( ! specifyEndCrossCleftAttVols() )
+//		return false;
+//
+//	UG_LOG("specific end cross cleft att vols specified" << std::endl);
 
 	if( ! detachMarkers() )
 		return false;
@@ -1095,17 +1096,17 @@ bool ArteExpandFracs3D::attachMarkers()
 
 	m_vrtxAttAccsVrtxArisesFromExpandedEndingCrossingCleft = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_attAtVrtxIfVrtxArisesFromExpandedEndingCrossingCleft );
 
-	m_attVolIsNotFromCrossPt = ABool();
-
-	m_grid.attach_to_volumes_dv(m_attVolIsNotFromCrossPt, false);
-
-	m_attAccsVolIsNotFromCrossPt = Grid::VolumeAttachmentAccessor<ABool>( m_grid, m_attVolIsNotFromCrossPt );
-
-	m_attVolMightBeFromCrossPt = ABool();
-
-	m_grid.attach_to_volumes_dv(m_attVolMightBeFromCrossPt, false);
-
-	m_attAccsVolMightBeFromCrossPt = Grid::VolumeAttachmentAccessor<ABool>( m_grid, m_attVolMightBeFromCrossPt );
+//	m_attVolIsNotFromCrossPt = ABool();
+//
+//	m_grid.attach_to_volumes_dv(m_attVolIsNotFromCrossPt, false);
+//
+//	m_attAccsVolIsNotFromCrossPt = Grid::VolumeAttachmentAccessor<ABool>( m_grid, m_attVolIsNotFromCrossPt );
+//
+//	m_attVolMightBeFromCrossPt = ABool();
+//
+//	m_grid.attach_to_volumes_dv(m_attVolMightBeFromCrossPt, false);
+//
+//	m_attAccsVolMightBeFromCrossPt = Grid::VolumeAttachmentAccessor<ABool>( m_grid, m_attVolMightBeFromCrossPt );
 
 	return true;
 }
@@ -1148,9 +1149,9 @@ bool ArteExpandFracs3D::detachMarkers()
 
 	m_grid.detach_from_vertices( m_attAtVrtxIfVrtxArisesFromExpandedEndingCrossingCleft );
 
-	m_grid.detach_from_volumes( m_attVolIsNotFromCrossPt );
-
-	m_grid.detach_from_volumes( m_attVolMightBeFromCrossPt );
+//	m_grid.detach_from_volumes( m_attVolIsNotFromCrossPt );
+//
+//	m_grid.detach_from_volumes( m_attVolMightBeFromCrossPt );
 
 	return true;
 }
@@ -1719,6 +1720,8 @@ bool ArteExpandFracs3D::countAndSelectFracBaseNums()
 			for( auto const & edg : facEdges )
 			{
 				m_aaMarkEdgeVFP[edg]++;
+
+				m_aaMarkEdgeVFP[edg].addFractSudo(fracIndSudo);
 
 				if( IsBoundaryEdge3D( m_grid, edg ) )
 					m_aaMarkEdgeVFP[edg].setIsBndFracVertex();
@@ -8060,6 +8063,8 @@ bool ArteExpandFracs3D::createNewElements()
 
 						bool closedButNotDiamRelevant = false;
 
+						bool containsFractCrossEdge = false;
+
 						for( EndingCrossingFractureSegmentInfo & ecfsi : m_vecEndCrossFractSegmInfo )
 						{
 							std::vector<Face*> const & closedNotNeighbr = ecfsi.spuckVecClosedFracManifElNoNeighbr();
@@ -8069,6 +8074,21 @@ bool ArteExpandFracs3D::createNewElements()
 								if( fac == tFace )
 								{
 									closedButNotDiamRelevant = true;
+
+									std::vector<Edge*> facEdges;
+
+									CollectEdges( facEdges, m_grid, fac );
+
+									IndexType d_anzahlEcken = facEdges.size();
+
+									for( auto const & edg : facEdges )
+									{
+										if( ( m_aaMarkEdgeVFP[edg].getSudoList() ).size() == 2 )
+										{
+											containsFractCrossEdge = true;
+										}
+									}
+
 								}
 							}
 						}
@@ -8085,7 +8105,15 @@ bool ArteExpandFracs3D::createNewElements()
 						}
 						else
 						{
-							m_sh.assign_subset(expVol, m_sh.num_subsets());
+//							if( containsFractCrossEdge )
+//								m_sh.assign_subset(expVol, m_sh.num_subsets());
+
+							if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVol, tFace, newSubs ) )
+							{
+								UG_LOG("adding exp vol for exp vol Standard exepctionally did not work  " << std::endl);
+								return false;
+							}
+
 						}
 
 
@@ -9760,6 +9788,8 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 
 						bool closedButNotDiamRelevant = false;
 
+						bool containsFractCrossEdge = false;
+
 						UG_LOG("EXP VOL TEST " << std::endl);
 
 						if(locVrtInds.size() == 3)
@@ -10669,6 +10699,20 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 									{
 										closedButNotDiamRelevant = true;
 
+										std::vector<Edge*> facEdges;
+
+										CollectEdges( facEdges, m_grid, fac );
+
+										IndexType d_anzahlEcken = facEdges.size();
+
+										for( auto const & edg : facEdges )
+										{
+											if( ( m_aaMarkEdgeVFP[edg].getSudoList() ).size() == 2 )
+											{
+												containsFractCrossEdge = true;
+											}
+										}
+
 										// null basis, eins und zwei Rest, selbst mit falscher Orientierung
 
 										IndexType indOne = -1;
@@ -11065,7 +11109,7 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 							}
 							else
 							{
-								m_sh.assign_subset(expVol, m_sh.num_subsets());
+//								m_sh.assign_subset(expVol, m_sh.num_subsets());
 							}
 						}
 
@@ -11088,7 +11132,15 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 
 							if(  closedButNotDiamRelevant )
 							{
-								m_sh.assign_subset(expVolTwo, m_sh.num_subsets());
+//								if( containsFractCrossEdge )
+//									m_sh.assign_subset(expVolTwo, m_sh.num_subsets());
+
+								if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVolTwo, tFace, newSubs ) )
+								{
+									UG_LOG("adding exp vol for exp vol Two exepctionally did not work  " << std::endl);
+									return false;
+								}
+
 							}
 
 						}
@@ -11109,7 +11161,7 @@ bool ArteExpandFracs3D::addNewVol2Shrink4Diams(std::vector<size_t> const & locVr
 {
 	IndexType constexpr maxFacVrtxNum = 3;  // restricts algo to triangular based fractures
 
-	support::addElem(m_vecVolMightBeFromCrossCleftPt, newVol);
+//	support::addElem(m_vecVolMightBeFromCrossCleftPt, newVol);
 
 	for( auto const & crossVrtx : m_vrtcsCrossingPts )
 	{
@@ -11145,15 +11197,15 @@ bool ArteExpandFracs3D::addNewVol2Shrink4Diams(std::vector<size_t> const & locVr
 
 						m_vecVolManifVrtxCombiToShrink4Diams.push_back(vmvc);
 
-						m_attAccsVolIsNotFromCrossPt[newVol] = true;
+//						m_attAccsVolIsNotFromCrossPt[newVol] = true;
 					}
 				}
 			}
 		}
-		else
-		{
-			m_attAccsVolMightBeFromCrossPt[newVol] = true;
-		}
+//		else
+//		{
+//			m_attAccsVolMightBeFromCrossPt[newVol] = true;
+//		}
 	}
 
 	// TODO FIXME hier muss das Problem sein..... HIER
@@ -11213,28 +11265,28 @@ bool ArteExpandFracs3D::createTheDiamonds()
 //	return true;
 }
 
-bool ArteExpandFracs3D::specifyEndCrossCleftAttVols()
-{
-	return true;
-
-	for( Volume * & teVo : m_vecVolMightBeFromCrossCleftPt )
-	{
-		if( teVo )
-		{
-//			if( m_attAccsVolIsNotFromCrossPt[teVo] && m_attAccsVolMightBeFromCrossPt[teVo] )
-			{
-					m_sh.assign_subset(teVo, m_sh.num_subsets());
-			}
-		}
-		else
-		{
-			UG_LOG("tevo does not exist, bizarre" << std::endl);
-			return false;
-		}
-	}
-
-	return true;
-}
+//bool ArteExpandFracs3D::specifyEndCrossCleftAttVols()
+//{
+//	return true;
+//
+//	for( Volume * & teVo : m_vecVolMightBeFromCrossCleftPt )
+//	{
+//		if( teVo )
+//		{
+////			if( m_attAccsVolIsNotFromCrossPt[teVo] && m_attAccsVolMightBeFromCrossPt[teVo] )
+//			{
+//					m_sh.assign_subset(teVo, m_sh.num_subsets());
+//			}
+//		}
+//		else
+//		{
+//			UG_LOG("tevo does not exist, bizarre" << std::endl);
+//			return false;
+//		}
+//	}
+//
+//	return true;
+//}
 
 } /* namespace arte */
 
