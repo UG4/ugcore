@@ -22,11 +22,11 @@ function UJS_Submit
 
 	echo "Cluster: Vulcan(genoa). Scheduler: qsub"
 	if [ $nppn -gt $nppnmaxSingleThread ]; then
-		qsubrun="mpirun -np $npe $executable $args"
+		qsubrun="mpirun --map-by core --bind-to core -np $npe $executable $args"
 		# qsub doesn't know about hyper-threading. Only specify used procs. Round up.
 		# nppnRaw=$(((nppn+1)/2))
 	else
-		qsubrun="mpirun -np $npe $omplaceOption $executable $args"
+		qsubrun="mpirun --map-by core --bind-to core -np $npe $omplaceOption $executable $args"
 		# nppnRaw=$((nppn))
 	fi
 	PBSnodes="-l select=$nnodes:node_type=genoa:mpiprocs=$nppn"
