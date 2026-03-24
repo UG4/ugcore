@@ -24,11 +24,11 @@ elif [ $UGSUBMIT_TYPE == "Hawk" ]; then
 
  	source $scriptpath/schedulers/hawk
 
-elif [ $UGSUBMIT_TYPE == "Hunter" ] || [ $SUBMIT_TYPE == "hunter" ]; then
+elif [ $UGSUBMIT_TYPE == "Hunter" ] || [ $UGSUBMIT_TYPE == "hunter" ]; then
 
  	source $scriptpath/schedulers/hunter
 
-elif [ $UGSUBMIT_TYPE == "Vulcan" ] || [ $SUBMIT_TYPE == "vulcan" ]; then
+elif [ $UGSUBMIT_TYPE == "Vulcan" ] || [ ""$UGSUBMIT_TYPE == "vulcan" ]; then
 
  	source $scriptpath/schedulers/vulcan
 
