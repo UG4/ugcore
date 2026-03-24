@@ -20,7 +20,7 @@ function UJS_Submit
 	#omplaceOption="omplace -c 0-127:st=4"
 	omplaceOption=""
 
-	echo "Cluster: Hunter-Mi300A. Scheduler: qsub"
+	echo "Cluster: Vulcan(genoa). Scheduler: qsub"
 	if [ $nppn -gt $nppnmaxSingleThread ]; then
 		qsubrun="mpirun -np $npe $executable $args"
 		# qsub doesn't know about hyper-threading. Only specify used procs. Round up.
@@ -29,7 +29,7 @@ function UJS_Submit
 		qsubrun="mpirun -np $npe $omplaceOption $executable $args"
 		# nppnRaw=$((nppn))
 	fi
-	PBSnodes="-l select=$nnodes:node_type=mi300a:mpiprocs=$nppn"
+	PBSnodes="-l select=$nnodes:node_type=genoa:mpiprocs=$nppn"
 
 
 
@@ -71,7 +71,7 @@ function UJS_Submit
 
 
 	if [ $interactive == true ]; then
-		echo "Interactive mode currently not supported on hunter. Aborting."
+		echo "Interactive mode currently not supported on vulcan. Aborting."
 	else
 		jobid=`echo "cd $outdir; $qsubrun" | qsub $qsubargs` # actual execution
 		return=$?
@@ -87,15 +87,15 @@ function UJS_Submit
 
 function UJS_GetOptions
 {
-	if [ $UGSUBMIT_TYPE == "Hunter" ] || [ $UGSUBMIT_TYPE == "hunter" ]; then
-		nppnmax=96 # 4 Mi300A * 3 Chiplets * 8 Cores
-        pemax=18048  # 188 Nodes * 96 Cores per Node
-        nppnmaxSingleThread=96
+	if [ $UGSUBMIT_TYPE == "Vulcan" ] || [ $UGSUBMIT_TYPE == "vulcan" ]; then
+		    nppnmax=64 # 2*32 core (AMD Epyc 9334)
+        pemax=3840  # 60 Nodes * 64 Cores per Node
+        nppnmaxSingleThread=64
 	else
 		echo "WARNING: Unknown platform. guessed default values for MaxNumProcsPerNode (nppnmax) and MaxProcs (pemax) may be wrong."
-		nppnmax=128 # 2 x AMD EPYC 9374F = 2 * 64 Cores
-		pemax=32768 # 256 CPU-Nodes * 128 Cores per Node
-		nppnmaxSingleThread=128
+		nppnmax=64 # 2 x AMD EPYC 9374F = 2 * 64 Cores
+		pemax=3840 # 256 CPU-Nodes * 128 Cores per Node
+		nppnmaxSingleThread=64
 	fi
 }
 
