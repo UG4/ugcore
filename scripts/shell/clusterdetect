@@ -31,6 +31,8 @@ if [ -z "$UGSUBMIT_TYPE" ]; then
 		fi
 	elif [[ "$HOSTNAME" = "hawk-login"* ]]; then
 		UGSUBMIT_TYPE=Hawk
+  elif [[ "$HOSTNAME" = "hunter-login"* ]]; then
+		UGSUBMIT_TYPE=Hunter
 	else
 		unamestr=`uname`
 		if [[ "$unamestr" = 'Darwin' ]]; then

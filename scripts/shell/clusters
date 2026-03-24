@@ -24,6 +24,10 @@ elif [ $UGSUBMIT_TYPE == "Hawk" ]; then
 
  	source $scriptpath/schedulers/hawk
 
+elif [ $UGSUBMIT_TYPE == "Hunter" ]; then
+
+ 	source $scriptpath/schedulers/hunter
+
 elif [ $UGSUBMIT_TYPE == "Jugene" ]; then
 
 	source $scriptpath/schedulers/jugene
