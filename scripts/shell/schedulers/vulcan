@@ -17,16 +17,15 @@ function UJS_Submit
 	fi
 
 
-	#omplaceOption="omplace -c 0-127:st=4"
-	omplaceOption=""
+
 
 	echo "Cluster: Vulcan(genoa). Scheduler: qsub"
 	if [ $nppn -gt $nppnmaxSingleThread ]; then
-		qsubrun="mpirun --map-by core --bind-to core -np $npe $executable $args"
+		qsubrun="mpirun --map-by core --bind-to core -np $npe -- $executable $args"
 		# qsub doesn't know about hyper-threading. Only specify used procs. Round up.
 		# nppnRaw=$(((nppn+1)/2))
 	else
-		qsubrun="mpirun --map-by core --bind-to core -np $npe $omplaceOption $executable $args"
+		qsubrun="mpirun --map-by core --bind-to core -np $npe -- $executable $args"
 		# nppnRaw=$((nppn))
 	fi
 	PBSnodes="-l select=$nnodes:node_type=genoa:mpiprocs=$nppn"
@@ -59,9 +58,9 @@ function UJS_Submit
 
 	qsubargs="$qsubqueue -v UG4_ROOT -N $jobname -o job.output -e job.error -j oe -l walltime=$walltime $PBSnodes $pbsMail"
 
-  qmodules="module load gcc/15.2.0; module load openmpi/5.0.9-gcc-15.2.0;module load mkl/2025.2;"
+  qmodules="module load gcc/15.2.0; module load openmpi/5.0.9-gcc-15.2.0; module load mkl/2025.2;"
 
-	echo "echo \"cd $outdir; $qmodules; $qsubrun\" | qsub $qsubargs" >> info.txt
+	echo "echo \"cd $outdir; $qmodules; module list &> loaded_modules; $qsubrun \" | qsub $qsubargs" >> info.txt
 
 	if [ $test == true ]; then
 		echo "ONLY testing - NOT executing."
