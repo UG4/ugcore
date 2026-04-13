@@ -346,7 +346,7 @@ print_subset(const char* filename, TFunction& u, int si, int step, number time, 
 #ifdef UG_PARALLEL
 	//	write grouping *.pvtu file in parallel case
 		try{
-			write_pvtu(u, filename, si, step, time);
+			write_pvtu(u, filename, si, step, time, ssg);
 		}
 		UG_CATCH_THROW("VTK::print_subset: Failed to write pvtu-file.");
 #endif
@@ -479,7 +479,7 @@ print_subsets(const char* filename, TFunction& u, const SubsetGroup& ssGrp, int 
 #ifdef UG_PARALLEL
 	//	write grouping *.pvtu file in parallel case
 		try{
-			write_pvtu(u, filename, -1, step, time); // "-1" because we do not want any subset prefixes!
+			write_pvtu(u, filename, -1, step, time, ssGrp); // "-1" because we do not want any subset prefixes!
 		}
 		UG_CATCH_THROW("VTK::print_subsets: Failed to write pvtu-file.");
 #endif
@@ -2228,7 +2228,7 @@ template <int TDim>
 template <typename TFunction>
 void VTKOutput<TDim>::
 write_pvtu(TFunction& u, const std::string& filename,
-           int si, int step, number time)
+           int si, int step, number time, const SubsetGroup& ssGrp)
 {
 #ifdef UG_PARALLEL
 //	File pointer
@@ -2291,8 +2291,21 @@ write_pvtu(TFunction& u, const std::string& filename,
 			//	check that all functions are contained in subset
 				bool bContained = true;
 				for(size_t i = 0; i < fctGrp.size(); ++i)
-					if(!u.is_def_in_subset(fctGrp[i], si))
-						bContained = false;
+				{
+					// Case for print_subset()
+					if(si>=0)
+					{
+						if(!u.is_def_in_subset(fctGrp[i], si))
+							bContained = false;
+					}
+					/* Case for print_subsets()*/
+					else
+					{
+						for (size_t j = 0; j < ssGrp.size(); ++j)
+							if(!u.is_def_in_subset(fctGrp[i], ssGrp[j]))
+								bContained = false;
+					}
+				}
 
 				if(!bContained) continue;
 
@@ -2359,8 +2372,21 @@ write_pvtu(TFunction& u, const std::string& filename,
 			//	check that all functions are contained in subset
 				bool bContained = true;
 				for(size_t i = 0; i < fctGrp.size(); ++i)
-					if(!u.is_def_in_subset(fctGrp[i], si))
-						bContained = false;
+				{
+					// Case for print_subset()
+					if(si>=0)
+					{
+						if(!u.is_def_in_subset(fctGrp[i], si))
+							bContained = false;
+					}
+					// Case for print_subsets()
+					else
+					{
+						for (size_t j = 0; j < ssGrp.size(); ++j)
+							if(!u.is_def_in_subset(fctGrp[i], ssGrp[j]))
+								bContained = false;
+					}
+				}
 
 				if(!bContained) continue;
 
