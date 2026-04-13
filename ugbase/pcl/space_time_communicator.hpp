@@ -1,6 +1,9 @@
 /*
- * Copyright (c) 2015:  G-CSC, Goethe University Frankfurt
- * Author: Arne Nägel
+ * Copyright (c) 2025:  G-CSC, Goethe University Frankfurt
+ * Author: Arne Nägel, Martin Parnet
+ 
+ * Copyright (c) 2026:  KAUST, King Abdullah University of Science and Technology
+ * Author: Daniel Gonzalez
  *
  * This file is part of UG4.
  *
