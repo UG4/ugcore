@@ -51,19 +51,25 @@ namespace pcl{
 
         //--------------------------------------------------------------------------------------------------------------
 
-        void split(int numTemporalProcesses) {
+        void split(int numTemporalProcesses)
+		{
 
             int world_size, myid;
             MPI_Comm_size(PCL_COMM_WORLD, &world_size);
+			
+			globalsize_ = world_size;
+			spatialsize_ = world_size / numTemporalProcesses;
+			temporalsize_ = numTemporalProcesses;
+			
 			if(world_size % numTemporalProcesses != 0 )
-				UG_THROW("SpaceTimeCommunicator: Not enough processses for temporal spliting");
+				UG_THROW("SpaceTimeCommunicator: world_size is not a multiple of # temporal processes:"
+						 " Change the number of processors to "
+						 << numTemporalProcesses * spatialsize_ <<" or "
+						 << (numTemporalProcesses) * (spatialsize_ + 1 )<<".\n");
             
 
             GLOBAL = PCL_COMM_WORLD;
 
-            globalsize_ = world_size;
-            spatialsize_ = world_size / numTemporalProcesses;
-            temporalsize_ = numTemporalProcesses;
             
 
             MPI_Comm_rank(GLOBAL, &myid);
@@ -73,11 +79,12 @@ namespace pcl{
             MPI_Comm_split(GLOBAL, xcolor, myid, &SPATIAL);
             MPI_Comm_split(GLOBAL, tcolor, myid, &TEMPORAL);
 			
-            if (verbose_) {
-                std::cout << "World size after splitting is:\t" << world_size << std::endl;
-                std::cout << "... with temporal world size:\t" << temporalsize_ << std::endl;
-                std::cout << "... and spatial world size:\t" << spatialsize_ << std::endl << std::endl;
-            }
+			if (verbose_)
+			{
+				UG_LOG("World size after splitting is:\t" << world_size );
+				UG_LOG( "... with temporal world size:\t" << temporalsize_ );
+				UG_LOG( "... and spatial world size:\t" << spatialsize_ );
+			}
             
 
             PCL_COMM_WORLD = SPATIAL; // replaces ugs world communicator with the communicator for spatial
