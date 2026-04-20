@@ -178,8 +178,8 @@ class IDomainDiscretization : public IAssemble<TAlgebra>, public IDomainErrorInd
 		 * \param[out] 	b 	Right-Hand-Side
 		 * \param[in]	dd	DoF Distribution
 		 */
-		virtual void assemble_linear(matrix_type& A, vector_type& b, const GridLevel& gl) = 0;
-		virtual void assemble_linear(matrix_type& A, vector_type& b, ConstSmartPtr<DoFDistribution> dd) = 0;
+		virtual void assemble_linear(matrix_type& A, vector_type& b, const vector_type& u, const GridLevel& gl) = 0;
+		virtual void assemble_linear(matrix_type& A, vector_type& b, const vector_type& u, ConstSmartPtr<DoFDistribution> dd) = 0;
 
 		/// assembles the rhs
 		virtual void assemble_rhs(vector_type& rhs, const vector_type& u, const GridLevel& gl) = 0;
