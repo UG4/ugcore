@@ -26,7 +26,7 @@ function UJS_Submit
 		# qsub doesn't know about hyper-threading. Only specify used procs. Round up.
 		# nppnRaw=$(((nppn+1)/2))
 	else
-		qsubrun="mpirun -np $npe $omplaceOption $executable $args"
+		qsubrun="mpirun -np $npe $omplaceOption -- $executable $args"
 		# nppnRaw=$((nppn))
 	fi
 	PBSnodes="-l select=$nnodes:node_type=mi300a:mpiprocs=$nppn"
