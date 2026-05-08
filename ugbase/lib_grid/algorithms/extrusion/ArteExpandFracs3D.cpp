@@ -7783,6 +7783,7 @@ bool ArteExpandFracs3D::createNewElements()
 
 			if(tFace)
 			{
+
 				if( m_aaMarkFaceIsFracB[tFace] ) // && ! m_aaMarkFaceHasUnclosedFracSideB[tFace] )
 				{
 					bool faceIsSegmLimEndCrossCleft = m_facAttAccsIfFaceIsSegmLimFaceEndingCrossingCleft[tFace];
@@ -7827,6 +7828,28 @@ bool ArteExpandFracs3D::createNewElements()
 
 					if( avoidFace && debugTest )
 						continue;
+
+					std::vector<Edge*> edgesTFac;
+
+					bool tFacConnectsTwoFracsAndTouchesECC = false;
+
+					CollectEdges( edgesTFac, m_grid, tFace );
+
+					for( auto const & edg : edgesTFac )
+					{
+						if( ( m_aaMarkEdgeVFP[edg].getSudoList() ).size() == 2 )
+						{
+							for( IndexType i = 0; i < 2; i++ )
+							{
+								if( m_aaMarkVrtxAtEndingCrossingCleft[edg->vertex(i)] == true )
+								{
+									tFacConnectsTwoFracsAndTouchesECC = true;
+								}
+							}
+						}
+					}
+
+
 
 					Volume* expVol = nullptr;
 
@@ -8096,9 +8119,10 @@ bool ArteExpandFracs3D::createNewElements()
 
 						if( ! closedButNotDiamRelevant )
 						{
+							// RELEVANT aber nicht alle relevant für die kritische Stelle
 //							if( containsFractCrossEdge )
-							// in keiner Weise relevant für die kritische Stelle
-//								m_sh.assign_subset(expVol, m_sh.num_subsets());
+							if( tFacConnectsTwoFracsAndTouchesECC )
+								m_sh.assign_subset(expVol, m_sh.num_subsets());
 
 							if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVol, tFace, newSubs ) )
 							{
@@ -8109,6 +8133,7 @@ bool ArteExpandFracs3D::createNewElements()
 						}
 						else
 						{
+							// das hier ist so wichtig für die problematische Stelle
 							if( containsFractCrossEdge )
 								m_sh.assign_subset(expVol, m_sh.num_subsets());
 
