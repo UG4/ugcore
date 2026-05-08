@@ -8096,6 +8096,10 @@ bool ArteExpandFracs3D::createNewElements()
 
 						if( ! closedButNotDiamRelevant )
 						{
+//							if( containsFractCrossEdge )
+							// in keiner Weise relevant für die kritische Stelle
+//								m_sh.assign_subset(expVol, m_sh.num_subsets());
+
 							if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVol, tFace, newSubs ) )
 							{
 								UG_LOG("adding to shrink standard case did not work " << std::endl);
@@ -8105,8 +8109,8 @@ bool ArteExpandFracs3D::createNewElements()
 						}
 						else
 						{
-//							if( containsFractCrossEdge )
-//								m_sh.assign_subset(expVol, m_sh.num_subsets());
+							if( containsFractCrossEdge )
+								m_sh.assign_subset(expVol, m_sh.num_subsets());
 
 							if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVol, tFace, newSubs ) )
 							{
@@ -11101,6 +11105,10 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 
 							if( ! closedButNotDiamRelevant )
 							{
+//								if( containsFractCrossEdge ) ohne Einfluss
+								// wahrscheinlich folgende Volumen nicht relevant auch ohne die Bedingung
+//									m_sh.assign_subset(expVol, m_sh.num_subsets());
+
 								if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVol, face2Remember4Diam, newSubs, true ) )
 								{
 									UG_LOG("adding exp vol for ecc did not work  " << std::endl);
@@ -11130,6 +11138,8 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 //								return false;
 //							}
 
+							// testweise das hier mal wieder weg, um heraus zu finden,
+							// welche Volumen dazu kommen, aber sonderbare Resultate auslösen
 							if(  closedButNotDiamRelevant )
 							{
 //								if( containsFractCrossEdge )
