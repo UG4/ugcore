@@ -98,6 +98,7 @@ struct PyUserDataTraits<3>
 	{ return f(x[0],x[1],x[2],t,si); }
 };
 
+//! Arbitrary casts
 template <typename TData, typename TRet>
 struct PyUserDataTypeTraits
 {
@@ -109,6 +110,25 @@ struct PyUserDataTypeTraits
 
 };
 
+
+//! Concrete specialization for value MathVector & return type void
+template <typename T, int N>
+struct PyUserDataTypeTraits<MathVector<N,T>, void>
+{
+	using TData = MathVector<N,T>;
+	using TArray = std::array<T,N>;
+
+	static void return_value(py::object result_py)
+	{return void();}
+
+	// Use STL to cast python list to std::array. Then construct MathVector.
+	static TData data_value(py::object result_py)
+	{ return MathVector<N,T>(result_py.cast<TArray>()); }
+
+};
+
+
+//! General specialization for return type void
 template <typename TData>
 struct PyUserDataTypeTraits<TData, void>
 {
@@ -137,7 +157,9 @@ class PythonUserData
 	/*! Creates a PythonUserData that uses a Python function to evaluate some data. */
 	PythonUserData(TFunction f) : func(f)
 	{
-		UG_ASSERT(check_callback_returns(f), "Huhh: Function has invalid signature.")
+		UG_ASSERT(check_callback_returns(f),
+				"Huhh: Function has invalid signature: " <<
+				py::cast<std::string>(py::str(f)))
 	}
 
 protected:
@@ -164,6 +186,7 @@ protected:
 		try {
 			evaluate_func(func, data, x, time, si);
 		} catch (std::exception &e) {
+			std::cerr << e.what() << std::endl;
 			return false;
 		}
 		return true;
