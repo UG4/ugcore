@@ -239,6 +239,7 @@ class MathVector<1, T>
 		MathVector() 	{m_data[0] = 0.0;}
 		MathVector(value_type x) { m_data[0] = x; }
 		MathVector(const MathVector<1, T>& v)	{assign(v);}
+		MathVector(const std::array<value_type, 1>& a){ m_data[0] =  a[0]; }
 
 		static inline MathVector from(const MathVector<0, T>& v)	{return MathVector(0);}
 		static inline MathVector from(const MathVector<1, T>& v)	{return v;}
@@ -303,10 +304,7 @@ class MathVector<2, T>
 		MathVector()	{m_data[0] = m_data[1] = 0.0;}
 		MathVector(const value_type& val) {m_data[0] = m_data[1] = val;}
 		MathVector(value_type x, value_type y)
-		{
-			m_data[0] = x;
-			m_data[1] = y;
-		}
+		{ m_data[0] = x; m_data[1] = y; }
 		MathVector(const MathVector<2,T>& v)	{assign(v);}
 		MathVector(const std::array<value_type, 2>& a)
 		{ m_data[0] =  a[0]; m_data[1] =  a[1]; }
