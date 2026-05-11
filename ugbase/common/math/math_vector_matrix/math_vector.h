@@ -44,6 +44,8 @@
 #include <cstddef>
 #include <iostream>
 #include <algorithm>
+#include <array> 			// Create MathVector(s) from std::array(s).
+
 #include "../../ug_config.h"
 #include "../../types.h"
 #include "common/math/misc/math_constants.h"
@@ -306,6 +308,8 @@ class MathVector<2, T>
 			m_data[1] = y;
 		}
 		MathVector(const MathVector<2,T>& v)	{assign(v);}
+		MathVector(const std::array<value_type, 2>& a)
+		{ m_data[0] =  a[0]; m_data[1] =  a[1]; }
 
 		static inline MathVector from(const MathVector<0, T>& v)	{return MathVector(0, 0);}
 		static inline MathVector from(const MathVector<1, T>& v)	{return MathVector(v[0], 0);}
@@ -379,6 +383,8 @@ class MathVector<3, T>
 			m_data[2] = z;
 		}
 		MathVector(const MathVector<3,T>& v)	{assign(v);}
+		MathVector(const std::array<value_type, 3>& a)
+		{ m_data[0] =  a[0]; m_data[1] =  a[1]; m_data[2] =  a[2];}
 
 		static inline MathVector from(const MathVector<0, T>& v)	{return MathVector(0, 0, 0);}
 		static inline MathVector from(const MathVector<1, T>& v)	{return MathVector(v[0], 0, 0);}
