@@ -462,6 +462,8 @@ class MathVector<4, T>
 			m_data[3] = w;
 		}
 		MathVector(const MathVector<4,T>& v)	{assign(v);}
+		MathVector(const std::array<value_type, 4>& a)
+		{ m_data[0] =  a[0]; m_data[1] =  a[1]; m_data[2] =  a[2]; m_data[3] =  a[3];}
 
 		static inline MathVector from(const MathVector<0, T>& v)	{return MathVector(0, 0, 0, 0);}
 		static inline MathVector from(const MathVector<1, T>& v)	{return MathVector(v[0], 0, 0, 0);}
