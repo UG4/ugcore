@@ -154,7 +154,7 @@ if(BUILD_ONE_LIB)
 		
 		if(buildCompileInfo AND NOT buildEmbeddedPlugins)
 			add_dependencies(${targetLibraryName} CompileInfo)
-			target_link_libraries(${targetLibraryName} CompileInfo)
+			target_link_libraries(${targetLibraryName} PUBLIC CompileInfo)
 		endif(buildCompileInfo AND NOT buildEmbeddedPlugins)
 
 	else(buildDynamicLib)
@@ -171,7 +171,7 @@ if(BUILD_ONE_LIB)
 	endif(buildDynamicLib)
   
   target_include_directories(${targetLibraryName} PUBLIC ${ug4libIncludes})
-  target_link_libraries(${targetLibraryName} ${ug4libDependencies} ${linkLibraries})
+  target_link_libraries(${targetLibraryName} PUBLIC ${ug4libDependencies} ${linkLibraries})
   
   target_enable_sanitizers(${targetLibraryName} ${USE_SANITIZER})
 
@@ -200,6 +200,10 @@ endif(BUILD_ONE_LIB)
 
 # 
 if(USE_PYBIND11)
+	
+	# Link against Python.
+	target_link_libraries(${targetLibraryName} PUBLIC Python::Python)
+	
 	# We some stuff (libug4_s, source files) for a developer version
 	install(TARGETS ${targetLibraryName} LIBRARY DESTINATION ug4py COMPONENT Develop)
 	install(TARGETS ${sources} PUBLIC_HEADER DESTINATION ug4/ugbase COMPONENT Develop)
