@@ -202,7 +202,7 @@ endif(BUILD_ONE_LIB)
 if(USE_PYBIND11)
 	
 	# Link against Python.
-	target_link_libraries(${targetLibraryName} PUBLIC Python::Python)
+	target_link_libraries(${targetLibraryName} PUBLIC Python::Module)
 	
 	# We some stuff (libug4_s, source files) for a developer version
 	install(TARGETS ${targetLibraryName} LIBRARY DESTINATION ug4py COMPONENT Develop)
