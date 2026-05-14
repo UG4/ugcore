@@ -201,10 +201,27 @@ endif(BUILD_ONE_LIB)
 # 
 if(USE_PYBIND11)
 	
+	
+	#
+	# IMPORTANT: Make the library relocatable
+
+
+	if(APPLE)
+    	set_target_properties(${targetLibraryName} PROPERTIES
+        	INSTALL_RPATH "@loader_path"
+    	)
+	elseif(UNIX)
+    	set_target_properties(${targetLibraryName} PROPERTIES
+        	INSTALL_RPATH "$ORIGIN"
+    	)
+	endif()
+	
+	
 	# Link against Python.
 	target_link_libraries(${targetLibraryName} PUBLIC Python::Module)
 	
 	# We some stuff (libug4_s, source files) for a developer version
 	install(TARGETS ${targetLibraryName} LIBRARY DESTINATION ug4py COMPONENT Develop)
+	install(TARGETS CompileInfo LIBRARY DESTINATION ug4py COMPONENT Develop)
 	install(TARGETS ${sources} PUBLIC_HEADER DESTINATION ug4/ugbase COMPONENT Develop)
 endif(USE_PYBIND11)
