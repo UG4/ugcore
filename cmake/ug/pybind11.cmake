@@ -104,7 +104,7 @@ if(USE_PYBIND11)
  	
  	# Check for Python.
     # FIND_PACKAGE(Python REQUIRED COMPONENTS Interpreter Development)
-		FIND_PACKAGE(Python REQUIRED COMPONENTS Interpreter Development)
+ 	FIND_PACKAGE(Python REQUIRED COMPONENTS Interpreter Development.Module)
     MESSAGE(STATUS "Info: Found Python = ${Python_FOUND}")
     MESSAGE(STATUS "Info: Using INC${Python_INCLUDE_DIRS}")
     MESSAGE(STATUS "Info: Using LIB ${Python_LIBRARIES}")
@@ -134,7 +134,7 @@ if(USE_PYBIND11)
 	add_definitions(-DUG_USE_PYBIND11)
 
 	# Extend flags
-	# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fvisibility=hidden")
+	#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fvisibility=hidden")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 
     if(STATIC_BUILD)
