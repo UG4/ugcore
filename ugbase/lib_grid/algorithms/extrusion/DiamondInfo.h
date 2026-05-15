@@ -88,16 +88,22 @@ public:
 	VolManifVrtxCombi( FULLDIMELEM const & vol,
 					   MANIFELEM const & manif,
 					   VrtxPair const & oldAndShiftVrtx,
-					   INDEXTYP	sudo
+					   INDEXTYP	sudo,
+					   bool hasOneEndingCrossingCleft = false,
+					   FULLDIMELEM const & partnerVol = nullptr
 					 )
 	: m_volElm(vol),
 	  m_manifElm(manif),
 	  m_oldAndshiftVrtx(oldAndShiftVrtx),
 	  m_sudo(sudo),
-	  m_lowDimElm(nullptr)
+	  m_lowDimElm(nullptr),
+	  m_hasOneEndingCrossingCleft(hasOneEndingCrossingCleft),
+	  m_volPartnerElm( partnerVol )
 	{};
 
 	void spuckFulldimElem( FULLDIMELEM & vol ) { vol = m_volElm; }
+
+	void spuckFulldimPartnerElem( FULLDIMELEM & partVol ) { partVol = m_volPartnerElm; }
 
 	void spuckManif( MANIFELEM & manif ) { manif = m_manifElm; }
 
@@ -107,9 +113,12 @@ public:
 
 	INDEXTYP spuckSudo() { return m_sudo; }
 
+	bool spuckHasOneEndingCrossingCleft() { return m_hasOneEndingCrossingCleft; }
+
 	void changeTheElems( FULLDIMELEM const & vol,
 						 MANIFELEM const & manif,
-						 VERTEXTYP const & newBaseVrtx
+						 VERTEXTYP const & newBaseVrtx,
+						 FULLDIMELEM const & partnerVol = nullptr
 					   )
 	{
 		m_volElm = vol;
@@ -117,6 +126,7 @@ public:
 		m_oldAndshiftVrtx.first = newBaseVrtx;
 		// only assigned again after integrity check:
 		m_lowDimElm = nullptr;
+		m_volPartnerElm = partnerVol;
 	}
 
 	// compute the edge which connects the both vertices!!!!
@@ -131,9 +141,16 @@ public:
 	{
 		INDEXTYP edgeFound = 0;
 
-		for(size_t i_edge = 0; i_edge < m_volElm->num_edges(); ++i_edge)
+		FULLDIMELEM testElm = m_volElm;
+
+		if( m_volPartnerElm && m_hasOneEndingCrossingCleft )
+			testElm = m_volPartnerElm;
+
+//		for(size_t i_edge = 0; i_edge < m_volElm->num_edges(); ++i_edge)
+		for(size_t i_edge = 0; i_edge < testElm->num_edges(); ++i_edge)
 		{
-			LOWDIMELM lowDimElm = grid.get_edge( m_volElm, i_edge );
+//			LOWDIMELM lowDimElm = grid.get_edge( m_volElm, i_edge );
+			LOWDIMELM lowDimElm = grid.get_edge( testElm, i_edge );
 
 			if(    EdgeContains(lowDimElm, m_oldAndshiftVrtx.first)
 				&& EdgeContains(lowDimElm, m_oldAndshiftVrtx.second )
@@ -161,7 +178,8 @@ private:
 	VrtxPair m_oldAndshiftVrtx;
 	INDEXTYP m_sudo;
 	LOWDIMELM m_lowDimElm;
-
+	bool m_hasOneEndingCrossingCleft;
+	FULLDIMELEM m_volPartnerElm;
 
 
 };
@@ -309,7 +327,7 @@ public:
 		typename = std::enable_if<std::is_same<Face*,MANIFELEM>::value>,
 		typename = std::enable_if<std::is_same<Edge*,LOWDIMELEM>::value>
 	>
-	bool checkIntegrity()
+	bool checkIntegrity( bool checkAlsoFace = true )
 	{
 		if( ! checkIntegrityVols() )
 		{
@@ -317,10 +335,13 @@ public:
 			return false;
 		}
 
-		if( ! checkIntegrityFaceInBothVols())
+		if( checkAlsoFace )
 		{
-			UG_LOG("A face in the dark " << std::endl);
-			return false;
+			if( ! checkIntegrityFaceInBothVols())
+			{
+				UG_LOG("A face in the dark " << std::endl);
+				return false;
+			}
 		}
 
 		if( ! figureOutMajorVertices() )

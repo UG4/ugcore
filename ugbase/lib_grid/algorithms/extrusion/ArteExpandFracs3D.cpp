@@ -101,6 +101,8 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_aaMarkFaceWithEndingCrossingCleft(Grid::FaceAttachmentAccessor<ABool>()),
 	  m_aAdjMarkerVrtxAtEndingCrossingCleft(ABool()),
 	  m_aaMarkVrtxAtEndingCrossingCleft(Grid::VertexAttachmentAccessor<ABool>()),
+	  m_aAdjMarkerVrtxAtTwoEndingCrossingClefts(ABool()),
+	  m_aaMarkVrtxAtTwoEndingCrossingClefts(Grid::VertexAttachmentAccessor<ABool>()),
 //	  m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract(ABool()),
 //	  m_aaMarkVrtx2AtInnerEndOfEndingCrossingFract(Grid::VertexAttachmentAccessor<ABool>()),
 	  m_needToSplitEdgesConnectingNeighbrdEndingCrossCleftVrtx(false),
@@ -980,7 +982,15 @@ bool ArteExpandFracs3D::attachMarkers()
 	m_grid.attach_to_vertices_dv( m_aAdjMarkerVrtxAtEndingCrossingCleft, false );
 
 	m_aaMarkVrtxAtEndingCrossingCleft = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerVrtxAtEndingCrossingCleft );
-//
+
+	m_aAdjMarkerVrtxAtTwoEndingCrossingClefts = ABool();
+
+	m_grid.attach_to_vertices_dv( m_aAdjMarkerVrtxAtTwoEndingCrossingClefts, false );
+
+	m_aaMarkVrtxAtTwoEndingCrossingClefts = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerVrtxAtTwoEndingCrossingClefts );
+
+
+	//
 //	m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract = ABool();
 //
 //	m_grid.attach_to_vertices_dv( m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract, false );
@@ -1123,6 +1133,7 @@ bool ArteExpandFracs3D::detachMarkers()
 //
 	m_grid.detach_from_faces( m_aAdjMarkerFaceWithEndingCrossingCleft );
 	m_grid.detach_from_vertices( m_aAdjMarkerVrtxAtEndingCrossingCleft );
+	m_grid.detach_from_vertices( m_aAdjMarkerVrtxAtTwoEndingCrossingClefts );
 //	m_grid.detach_from_vertices( m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract );
 
 	m_grid.detach_from_vertices( m_aAdjInfoEdges );
@@ -2300,6 +2311,8 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 		for( SegmentLimitingSides & segLimSids : vecSegmLimSid )
 		{
+			// muss leider bisher auf beiden Seiten enden, sonst entsteht bisher Unsinn
+			// TODO FIXME reparieren HHHHHHHHHHHHHHHHHH
 			if( segLimSids.hasUnclosedFaces() )
 			{
 				UG_LOG("im distinguisch ungeschlossene Gesichter " << std::endl );
@@ -2332,6 +2345,14 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 				UG_LOG("vertex gefunden an ending crossing cleft " << std::endl);
 
 				m_aaMarkVrtxAtEndingCrossingCleft[vrt] = true;
+				// HHHHHHHHHHHHHHHHHHHHhh
+
+				// HHHHHHHHHHHHHHHHHHHHHHHHHHH
+				// TODO FIXME das muss modifiziert werden, damit es nicht angewendet wird,
+				// wenn die Kluft auf der einen Seite weiter geht, und auf der anderen endet!
+
+				if( vecSegmLimSid.size() == 2 )
+					m_aaMarkVrtxAtTwoEndingCrossingClefts[vrt] = true;
 
 				// the unclosed ending crossing faces
 				VecSegLimSidesFractFace vecSegmLimSiFFUnclosed;
@@ -8121,10 +8142,10 @@ bool ArteExpandFracs3D::createNewElements()
 						{
 							// RELEVANT aber nicht alle relevant für die kritische Stelle
 //							if( containsFractCrossEdge )
-							if( tFacConnectsTwoFracsAndTouchesECC )
-								m_sh.assign_subset(expVol, m_sh.num_subsets());
+//							if( tFacConnectsTwoFracsAndTouchesECC )
+//								m_sh.assign_subset(expVol, m_sh.num_subsets());
 
-							if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVol, tFace, newSubs ) )
+							if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVol, tFace, newSubs, tFacConnectsTwoFracsAndTouchesECC ) )
 							{
 								UG_LOG("adding to shrink standard case did not work " << std::endl);
 								return false;
@@ -8134,10 +8155,10 @@ bool ArteExpandFracs3D::createNewElements()
 						else
 						{
 							// das hier ist so wichtig für die problematische Stelle
-							if( containsFractCrossEdge )
-								m_sh.assign_subset(expVol, m_sh.num_subsets());
+//							if( containsFractCrossEdge )
+//								m_sh.assign_subset(expVol, m_sh.num_subsets());
 
-							if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVol, tFace, newSubs ) )
+							if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVol, tFace, newSubs, containsFractCrossEdge ) )
 							{
 								UG_LOG("adding exp vol for exp vol Standard exepctionally did not work  " << std::endl);
 								return false;
@@ -9807,6 +9828,55 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 
 						UG_LOG("Volumenerzeugung Versuch ECC Anfang" << std::endl);
 
+						std::vector<Edge*> edgesTFac;
+
+						bool tFacConnectsTwoFracsAndTouchesECC = false;
+
+						CollectEdges( edgesTFac, m_grid, tFace );
+
+						for( auto const & edg : edgesTFac )
+						{
+							if( ( m_aaMarkEdgeVFP[edg].getSudoList() ).size() == 2 )
+							{
+								for( IndexType i = 0; i < 2; i++ )
+								{
+									if( m_aaMarkVrtxAtEndingCrossingCleft[edg->vertex(i)] == true )
+									{
+										tFacConnectsTwoFracsAndTouchesECC = true;
+									}
+								}
+							}
+						}
+
+//						bool containsFractCrossEdge = false;
+//
+//						for( EndingCrossingFractureSegmentInfo & ecfsi : m_vecEndCrossFractSegmInfo )
+//						{
+//							std::vector<Face*> const & closedNotNeighbr = ecfsi.spuckVecClosedFracManifElNoNeighbr();
+//
+//							for( Face * fac : closedNotNeighbr )
+//							{
+//								if( fac == tFace )
+//								{
+//									std::vector<Edge*> facEdges;
+//
+//									CollectEdges( facEdges, m_grid, fac );
+//
+//									IndexType d_anzahlEcken = facEdges.size();
+//
+//									for( auto const & edg : facEdges )
+//									{
+//										if( ( m_aaMarkEdgeVFP[edg].getSudoList() ).size() == 2 )
+//										{
+//											containsFractCrossEdge = true;
+//										}
+//									}
+//
+//								}
+//							}
+//						}
+
+
 						Volume* expVol = nullptr;
 
 						Volume* expVolTwo = nullptr;
@@ -11127,14 +11197,15 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 								}
 							}
 
-
 							if( ! closedButNotDiamRelevant )
 							{
 //								if( containsFractCrossEdge ) ohne Einfluss
 								// wahrscheinlich folgende Volumen nicht relevant auch ohne die Bedingung
 //									m_sh.assign_subset(expVol, m_sh.num_subsets());
 
-								if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVol, face2Remember4Diam, newSubs, true ) )
+
+
+								if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVol, face2Remember4Diam, newSubs ) )
 								{
 									UG_LOG("adding exp vol for ecc did not work  " << std::endl);
 									return false;
@@ -11144,6 +11215,25 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 							{
 //								m_sh.assign_subset(expVol, m_sh.num_subsets());
 							}
+
+//							if(expVolTwo)
+//							{
+//								if(  containsFractCrossEdge )
+//								{
+//									// TODO FIXME dann muss das VOlumen eins auch dazu als
+//									// HHHHHHHHHHHHH das Volumen, das wirklich verschoben wird.......
+//								}
+////	//								if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVolTwo, tFace, newSubs, containsNotClosed ) )
+////									// TODO FIXME dazu muss der expVolOne Partner dazu, der übernimmt die Rolle dessen, der
+////									// aufgelöst und verschoben wird, aber der hier ist der Partner für das Doppel der Diamanten......
+////									if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVolTwo, tFace, newSubs, containsFractCrossEdge ) )
+////									{
+////										UG_LOG("adding exp vol for exp vol Two exepctionally did not work  " << std::endl);
+////										return false;
+////									}
+//
+//							}
+
 						}
 
 						if(expVolTwo)
@@ -11163,13 +11253,35 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 //								return false;
 //							}
 
+//							if( containsFractCrossEdge || tFacConnectsTwoFracsAndTouchesECC )
+//							if( containsFractCrossEdge )
+//								m_sh.assign_subset( expVolTwo, m_sh.num_subsets());
+
 							// testweise das hier mal wieder weg, um heraus zu finden,
 							// welche Volumen dazu kommen, aber sonderbare Resultate auslösen
+//							if(  closedButNotDiamRelevant || containsFractCrossEdge )
+//							{
+////								if( containsFractCrossEdge )
+////									m_sh.assign_subset(expVolTwo, m_sh.num_subsets());
+//
+////								bool containsNotClosed = ( containsFractCrossEdge && ! closedButNotDiamRelevant );
+//
+////								if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVolTwo, tFace, newSubs, containsNotClosed ) )
+//								// TODO FIXME dazu muss der expVolOne Partner dazu, der übernimmt die Rolle dessen, der
+//								// aufgelöst und verschoben wird, aber der hier ist der Partner für das Doppel der Diamanten......
+//								// TODO FIXME muss dazu im Falle von containsFractCrossEdge aber nicht wirklich, nur in Kombi mit dem anderen eigentlich
+//								// sonst stürzt es ab, es braucht also auch noch Paare als Option.....
+//								// HHHHHHHHHHHHHHHHHHH
+//								if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVolTwo, tFace, newSubs, containsFractCrossEdge ) )
+//								{
+//									UG_LOG("adding exp vol for exp vol Two exepctionally did not work  " << std::endl);
+//									return false;
+//								}
+//
+//							}
+
 							if(  closedButNotDiamRelevant )
 							{
-//								if( containsFractCrossEdge )
-//									m_sh.assign_subset(expVolTwo, m_sh.num_subsets());
-
 								if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVolTwo, tFace, newSubs ) )
 								{
 									UG_LOG("adding exp vol for exp vol Two exepctionally did not work  " << std::endl);
@@ -11178,6 +11290,15 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 
 							}
 
+							if( containsFractCrossEdge && expVol && ! closedButNotDiamRelevant )
+							{
+								if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVolTwo, tFace, newSubs, containsFractCrossEdge, expVol ) )
+								{
+									UG_LOG("adding exp vol for exp vol Two exepctionally did not work combi " << std::endl);
+									return false;
+								}
+
+							}
 						}
 
 					}
@@ -11192,7 +11313,7 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 
 /////////////////////////////////////////////////////////////////
 
-bool ArteExpandFracs3D::addNewVol2Shrink4Diams(std::vector<size_t> const & locVrtInds, Volume * const & oldVol, Volume * const & newVol, Face * const & fac, IndexType subs, bool comesFromEndingCrossingFract )
+bool ArteExpandFracs3D::addNewVol2Shrink4Diams(std::vector<size_t> const & locVrtInds, Volume * const & oldVol, Volume * const & newVol, Face * const & fac, IndexType subs, bool addAlso4ECC, Volume * const & replacePartnerVol )
 {
 	IndexType constexpr maxFacVrtxNum = 3;  // restricts algo to triangular based fractures
 
@@ -11200,8 +11321,16 @@ bool ArteExpandFracs3D::addNewVol2Shrink4Diams(std::vector<size_t> const & locVr
 
 	for( auto const & crossVrtx : m_vrtcsCrossingPts )
 	{
-		//  exclude ending crossing cleft vertices!!!! aber nur, wenn es auf endender Seite ist....
-		if( ! m_aaMarkVrtxAtEndingCrossingCleft[crossVrtx] ) // || ! comesFromEndingCrossingFract )
+		//  exclude ending crossing cleft vertices!!!! TODO FIXME aber nur, wenn es auf BEIDEN Seiten endet....
+		// HHHHHHHHHHHHHHHHHHHH
+
+		bool vrtxAtEndingCrossingCleft = m_aaMarkVrtxAtEndingCrossingCleft[crossVrtx];
+		bool vrtxAtTwoEndingCrossingClefts = m_aaMarkVrtxAtTwoEndingCrossingClefts[crossVrtx];
+
+//		if( ! m_aaMarkVrtxAtEndingCrossingCleft[crossVrtx] || m_aaMarkVrtxAtTwoEndingCrossingClefts[crossVrtx] ) // || ! comesFromEndingCrossingFract )
+//		if( ! vrtxAtTwoEndingCrossingClefts && ! ( comesFromVolTwoType && vrtxAtEndingCrossingCleft ) )
+		if( ! vrtxAtEndingCrossingCleft )
+//		if( ! vrtxAtEndingCrossingCleft || addAlso4ECC )
 		{
 			//		for( IndexType i = 0; i < maxVolVrtxNum; i++ )
 			for( IndexType i = 0; i < maxFacVrtxNum; i++ )
@@ -11213,24 +11342,77 @@ bool ArteExpandFracs3D::addNewVol2Shrink4Diams(std::vector<size_t> const & locVr
 				{
 					Vertex * shiVrt = ( m_aaVrtVecVol[oldVol] )[iv];
 
+					// HHHHHHHHHHH TODO FIXME
+					// noch testen, ob der Shift Vertex und der alte Vertex von einer ECC kommen
+
 					if( shiVrt )
 					{
 	//					Vertex * oldVrt = oldVol->vertex(iv);
 						VrtxPair osv( oldVrt, shiVrt );
-						VolManifVrtxCombi vmvc( newVol, fac, osv, subs );
+
+						Volume * insertReplVol = nullptr;
+
+						if( vrtxAtEndingCrossingCleft )
+						{
+							insertReplVol = replacePartnerVol;
+						}
+
+						VolManifVrtxCombi vmvc( newVol, fac, osv, subs, vrtxAtEndingCrossingCleft, insertReplVol );
 
 						if( ! vmvc.checkIntegrity(m_grid))
 						{
 							UG_LOG("combi to shrink not integer" << std::endl);
-							m_sh.assign_subset(oldVol, m_sh.num_subsets());
 							m_sh.assign_subset(fac, m_sh.num_subsets());
-							m_sh.assign_subset(newVol, m_sh.num_subsets());
 							m_sh.assign_subset(oldVrt, m_sh.num_subsets());
 							m_sh.assign_subset(shiVrt, m_sh.num_subsets());
+							m_sh.assign_subset(oldVol, m_sh.num_subsets());
+							m_sh.assign_subset(newVol, m_sh.num_subsets());
+							if( replacePartnerVol )
+								m_sh.assign_subset(replacePartnerVol, m_sh.num_subsets());
+							return false;
+						}
+
+						if( ! newVol )
+						{
+							UG_LOG("no new vol added " << std::endl);
 							return false;
 						}
 
 						m_vecVolManifVrtxCombiToShrink4Diams.push_back(vmvc);
+
+						//Volume * testVol;
+
+//						vmvc.spuckFulldimElem(testVol);
+//
+//						if( ! testVol )
+//						{
+//							UG_LOG("Jetzt schlaegt es 13" << std::endl);
+//							return false;
+//						}
+
+//						for( VolManifVrtxCombi & vmvc2 : m_vecVolManifVrtxCombiToShrink4Diams )
+//						{
+//							Volume * vol;
+//							Volume * paVol;
+//
+//							vmvc2.spuckFulldimElem(vol);
+//							vmvc2.spuckFulldimPartnerElem(paVol);
+//
+//							if( vol )
+//							{
+////								m_sh.assign_subset( vol, m_sh.num_subsets() );
+//							}
+//							else
+//							{
+//								UG_LOG("ALREADY INSIDE NULL" << std::endl);
+//								return false;
+//							}
+//
+////							if( paVol )
+////								m_sh.assign_subset( paVol, m_sh.num_subsets() );
+//						}
+
+
 
 //						m_attAccsVolIsNotFromCrossPt[newVol] = true;
 					}
@@ -11278,6 +11460,30 @@ bool ArteExpandFracs3D::addNewVol2Shrink4Diams(std::vector<size_t> const & locVr
 
 bool ArteExpandFracs3D::createTheDiamonds()
 {
+//	for( VolManifVrtxCombi & vmvc : m_vecVolManifVrtxCombiToShrink4Diams )
+//	{
+//		Volume * vol;
+//		Volume * paVol;
+//
+//		vmvc.spuckFulldimElem(vol);
+//		vmvc.spuckFulldimPartnerElem(paVol);
+//
+//		if( vol )
+//		{
+//			m_sh.assign_subset( vol, m_sh.num_subsets() );
+//		}
+//		else
+//		{
+//			UG_LOG("ALREADY BEFOR VOL BUT NEEDED FOR SURE BEFORE" << std::endl);
+//			return false;
+//		}
+//
+//		if( paVol )
+//			m_sh.assign_subset( paVol, m_sh.num_subsets() );
+//	}
+
+//	return false;
+
 	diamonds::DiamondsEstablish3D establishDiams( m_grid, m_sh, m_vecVolManifVrtxCombiToShrink4Diams, m_vecSideDiamElmsDirectCreate );
 
 	UG_LOG("Establishing diamonds" << std::endl);

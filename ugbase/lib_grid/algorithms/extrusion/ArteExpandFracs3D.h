@@ -184,6 +184,9 @@ private:
 
 	Grid::VertexAttachmentAccessor<ABool> m_aaMarkVrtxAtEndingCrossingCleft;
 
+	ABool m_aAdjMarkerVrtxAtTwoEndingCrossingClefts;
+
+	Grid::VertexAttachmentAccessor<ABool> m_aaMarkVrtxAtTwoEndingCrossingClefts;
 
 
 	bool countAndSelectFracBaseNums();
@@ -528,7 +531,7 @@ private:
 
 	bool createTheDiamonds();
 
-	bool addNewVol2Shrink4Diams( std::vector<size_t> const & locVrtInds, Volume * const & oldVol, Volume * const & newVol, Face * const & fac, IndexType subs, bool comesFromEndingCrossingFract = false );
+	bool addNewVol2Shrink4Diams( std::vector<size_t> const & locVrtInds, Volume * const & oldVol, Volume * const & newVol, Face * const & fac, IndexType subs, bool addAlso4ECC = false, Volume * const & replacePartnerVol = nullptr );
 
 	using SideDiamElemsDirectCreated = diamonds::SideElemsOfDiamsCreatedDirectly<Volume*, Vertex*, IndexType>;
 

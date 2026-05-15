@@ -77,7 +77,8 @@ private:
 	using PairVolFacVrtxCmb = std::pair<VolManifVrtxCombi,VolManifVrtxCombi>;
 
 	bool trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet( PairVolFacVrtxCmb & prVolFacVrtxC,
-															 VolumeElementFaceQuintuplet & vef5
+															 VolumeElementFaceQuintuplet & vef5,
+															 bool & useSomePartner
 															);
 
 	bool establishElems2BeQuenched();
