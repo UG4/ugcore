@@ -215,7 +215,9 @@ if(USE_PYBIND11)
 		# target_link_options(pyugcore PRIVATE "-Wl,-rpath,@loader_path/lib")
     	
 	elseif(UNIX)
-    	set_target_properties(pyugcore PROPERTIES INSTALL_RPATH "$ORIGIN")
+		set_target_properties(libug4 PROPERTIES INSTALL_RPATH "$ORIGIN:$ORIGIN/../lib")
+		set_target_properties(libCompileInfo PROPERTIES INSTALL_RPATH "$ORIGIN:$ORIGIN/../lib")
+    	set_target_properties(pyugcore PROPERTIES INSTALL_RPATH "$ORIGIN:$ORIGIN/../lib")
 	endif()
 	
 	# Link libug4 against Python.
