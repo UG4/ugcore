@@ -42,8 +42,25 @@ if(USE_PYBIND11)
    		CXX_EXTENSIONS NO)
    		
    	# '$targetLibraryName' is either ug4 or ug4_s	
-	target_link_libraries (${pyModuleName} PRIVATE ${targetLibraryName})
+   	MESSAGE(STATUS "Using libug4 ${targetLibraryName}") 
+	target_link_libraries (${pyModuleName} PUBLIC ${targetLibraryName} CompileInfo)
+	
+	# Install module into 'ug4py'
 	install(TARGETS ${pyModuleName} LIBRARY DESTINATION ug4py COMPONENT pymodules)
+	
+	
+	if(APPLE)
+		# message (STATUS "Fixing RELOC path")
+    	# set_target_properties(${targetLibraryName} PROPERTIES
+        #	INSTALL_RPATH "@loader_path"
+    	# )
+    	
+    	# set(CMAKE_MACOSX_RPATH ON)
+
+		# set_target_properties(${targetLibraryName} PROPERTIES INSTALL_NAME_DIR "@loader_path")
+		#set_target_properties(${pyModuleName} PROPERTIES INSTALL_RPATH "@loader_path")
+		#target_link_options(${pyModuleName} PRIVATE "-Wl,-rpath,@loader_path")
+	endif()
 	
 
 	

@@ -160,6 +160,33 @@ elseif("${TARGET}" STREQUAL "luashell")
 	set(BLAS OFF)
 	set(LAPACK OFF)
 	set(buildTools ON)
+elseif("${TARGET}" STREQUAL "pyugcore")
+	# like libug4
+	set(buildAlgebra ON)
+	set(buildPlugins ON)
+	set(buildGrid ON)
+	set(buildDisc ON)
+	set(buildBridge ON)
+	set(buildBindings ON)
+	set(buildRegistry ON)
+	set(buildTools ON)
+
+	# but with certain amendments
+	set(CPU 1) 				# default
+	set(PARALLEL OFF) 		# default
+	set(USE_PYBIND11 ON)	# of course
+	set(EMBEDDED_PLUGINS OFF)
+	
+	# some OS dependence
+	if(WIN32)
+		MESSAGE(STATUS "Info: Windows build must be static and defaults to DIM=2,3. (pypi size restriction)")
+		set(STATIC_BUILD ON)
+		set(DIM "2;3")
+	else(WIN32)
+		# This is the default.
+		set(STATIC_BUILD OFF)
+		set(DIM "ALL")
+	endif(WIN32)
 
 else("${TARGET}" STREQUAL "ugshell")
 	message(FATAL_ERROR "Unsupported TARGET: ${TARGET}. Options are: ${targetOptions}")

@@ -95,7 +95,7 @@ set(linkLibraries)
 # In this section we'll define default variables
 	
 # Values for the TARGET option
-set(targetOptions "ugshell, libug4, vrl, vrlgrid, libgrid, gridshell, ugplugin, amg, luashell")
+set(targetOptions "ugshell, libug4, vrl, vrlgrid, libgrid, gridshell, ugplugin, amg, luashell, pyugcore")
 set(targetDefault "ugshell")
 set(targetExecutableName ugshell)
 set(targetLibraryName ug4)
