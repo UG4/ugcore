@@ -210,7 +210,7 @@ if(USE_PYBIND11)
 		set_target_properties(${targetLibraryName} PROPERTIES 
 			INSTALL_RPATH "@loader_path"
 			BUILD_WITH_INSTALL_RPATH TRUE)
-		set_target_properties(libCompileInfo PROPERTIES 
+		set_target_properties(CompileInfo PROPERTIES 
 			INSTALL_RPATH "@loader_path"
 			BUILD_WITH_INSTALL_RPATH TRUE)
 		
