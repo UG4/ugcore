@@ -204,15 +204,18 @@ if(USE_PYBIND11)
 
 	if(APPLE)
 		message (STATUS "Fixing RELOC path")
-    	# set(CMAKE_MACOSX_RPATH ON)
+    	set(CMAKE_MACOSX_RPATH ON)
 		
 		# libug4 identifies with rpath
 		set_target_properties(${targetLibraryName} PROPERTIES 
 			INSTALL_RPATH "@loader_path"
-			BUILD_WITH_INSTALL_RPATH TRUE)
+			BUILD_WITH_INSTALL_RPATH TRUE
+			MACOSX_RPATH TRUE)
+
 		set_target_properties(CompileInfo PROPERTIES 
 			INSTALL_RPATH "@loader_path"
-			BUILD_WITH_INSTALL_RPATH TRUE)
+			BUILD_WITH_INSTALL_RPATH TRUE
+			MACOSX_RPATH TRUE)
 		
 		# pyugcore => ug4py, but search in ug4py/../lib
 		set_target_properties(pyugcore PROPERTIES 
