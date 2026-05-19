@@ -58,8 +58,7 @@ endfunction(ug4pybind_add_module)
 
 # get_libug4_from_pip
 # return_value1: location of library in current pip directory.
-function(get_libug4_from_pip RETURN_VAR)
-	SET(UG4_STATIC_LIB_BASENAME ug4_s)
+function(get_libug4_from_pip RETURN_VAR UG4_LIB_BASENAME)
 	#if(WIN32)
     # 	set(UG4_STATIC_LIB_NAME "${LIB_BASENAME}.lib")
 	#else()
@@ -86,10 +85,11 @@ function(get_libug4_from_pip RETURN_VAR)
 
 	# Find library.
 	find_library(PYUG4_STATIC_LIBRARY
-    			NAMES ${UG4_STATIC_LIB_BASENAME} lib${UG4_STATIC_LIB_BASENAME}
-    			PATHS ${UG4PY_BASE_PACKAGE_PATH}/lib ${UG4PY_BASE_PACKAGE_PATH}/lib64)
+    			NAMES ${UG4_LIB_BASENAME} lib${UG4_LIB_BASENAME}
+    			PATHS ${UG4PY_BASE_PACKAGE_PATH}/lib ${UG4PY_BASE_PACKAGE_PATH}/lib64
+				REQUIRED)
 	
-	message(STATUS "Library ${UG4_STATIC_LIB_BASENAME} found: ${PYUG4_STATIC_LIBRARY}")
+	message(STATUS "Library ${UG4_LIB_BASENAME} found: ${PYUG4_STATIC_LIBRARY}")
 	
 	set(${RETURN_VAR} "${PYUG4_STATIC_LIBRARY}" PARENT_SCOPE) 
 endfunction()
