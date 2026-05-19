@@ -205,6 +205,8 @@ if(USE_PYBIND11)
 	if(APPLE)
 		message (STATUS "Fixing RELOC path")
     	set(CMAKE_MACOSX_RPATH ON)
+    	set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
+    	set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE) # stop cmake from auto-injecting absolute paths.
 		
 		# libug4 identifies with rpath
 		set_target_properties(${targetLibraryName} PROPERTIES 
