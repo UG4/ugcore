@@ -203,18 +203,20 @@ if(USE_PYBIND11)
 	# IMPORTANT: Make the library relocatable
 
 	if(APPLE)
-		message (STATUS "Fixing RELOC path")
+		message (STATUS "Fixing RELOC path for MACOS")
     	set(CMAKE_MACOSX_RPATH ON)
     	set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
     	set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE) # stop cmake from auto-injecting absolute paths.
 		
 		# libug4 identifies with rpath
 		set_target_properties(${targetLibraryName} PROPERTIES 
+			INSTALL_NAME_DIR "@rpath"
 			INSTALL_RPATH "@loader_path"
 			BUILD_WITH_INSTALL_RPATH TRUE
 			MACOSX_RPATH TRUE)
 
 		set_target_properties(CompileInfo PROPERTIES 
+			INSTALL_NAME_DIR "@rpath"
 			INSTALL_RPATH "@loader_path"
 			BUILD_WITH_INSTALL_RPATH TRUE
 			MACOSX_RPATH TRUE)
