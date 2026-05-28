@@ -715,6 +715,8 @@ function util.solver.CreateLinearSolver(solverDesc, solverutil)
 	end
 
 	if createConvCheck == true then
+		-- print(desc)
+		-- print("ø")
 		linSolver:set_convergence_check(
 			util.solver.CreateConvCheck(desc.convCheck or defaults.convCheck, solverutil))
 	end
