@@ -55,7 +55,11 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug
+{
+
+namespace arte
+{
 
 //using namespace ug::support;
 
@@ -8220,13 +8224,9 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 #endif
 
 
-
-
-
-
-
 }
 
+}
 
 
 }// end of namespace

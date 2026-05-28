@@ -58,12 +58,19 @@
 #include "support.h"
 #include "support3D.h"
 
+#include "DiamondInfo.h"
+
+#include "DiamondsEstablish3D.h"
 
 
 #ifndef UGCORE_UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_ARTEEXPANDFRACS3D_H_
 #define UGCORE_UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_ARTEEXPANDFRACS3D_H_
 
-namespace ug {
+namespace ug
+{
+
+namespace arte
+{
 
 class ArteExpandFracs3D
 {
@@ -72,7 +79,7 @@ public:
 
 	ArteExpandFracs3D( Grid & grid, SubsetHandler & sh,
 		    std::vector<FractureInfo> const & fracInfos,
-			bool useTrianglesInDiamonds, bool establishDiamonds );
+			bool diamondsOnlyPreform, bool establishDiamonds );
 
 	virtual ~ArteExpandFracs3D();
 
@@ -89,13 +96,13 @@ private:
 	Grid & m_grid;
 	SubsetHandler & m_sh;
 	std::vector<FractureInfo> m_fracInfos;
-	bool m_useTrianglesInDiamonds, m_establishDiamonds;
+	bool m_diamondsOnlyPreform, m_establishDiamonds;
 
 	Grid::VertexAttachmentAccessor<APosition> m_aaPos;
 
-	//	objects for temporary results
-	FaceDescriptor m_facDescr;
-	VolumeDescriptor m_volDescr;
+//	//	objects for temporary results
+//	FaceDescriptor m_facDescr;
+//	VolumeDescriptor m_volDescr;
 
 //	std::vector<Edge*> m_tmpEdges; // used for temporary results.
 //	std::vector<Face*> m_tmpFaces; // used for temporary results.
@@ -494,9 +501,27 @@ private:
 	std::vector<Vertex*> m_vrtcsViolatingExpansion;
 	std::vector<Volume*> m_volsViolatingExpansion;
 
-
 	bool averageBndryNormals( VecPlaneDescriptor const & vecPlaneBndryDescr, vector3 & averagedNormal );
 
+private:
+
+	using VolManifVrtxCombi = diamonds::VolManifVrtxCombi<Volume*,Face*,Edge*, Vertex*, IndexType>;
+
+	using VecVolManifVrtxCombi = std::vector<VolManifVrtxCombi>;
+
+	VecVolManifVrtxCombi m_vecVolManifVrtxCombiToShrink4Diams;
+
+//	using DiamantInfo3D = diamonds::DiamondInfo<Volume*, Face*, Edge*, Vertex*, vector3, IndexType>;
+//
+//	std::vector<DiamantInfo3D> m_diamInfos3D;
+//
+	using VrtxPair = std::pair<Vertex*,Vertex*>;
+//
+//	std::vector<VrtxPair> m_oldNewVrtcs4Diams;
+
+	std::vector<Vertex*> m_vrtcsCrossingPts;
+
+	bool createTheDiamonds();
 };
 
 // specification has to be declared outside central class context, else compilation error
@@ -532,6 +557,7 @@ private:
 //											  ArteExpandFracs3D::VrtxFracProptsStatus::oneFracSuDoAtt
 //											>( Vertex * const & oldVrt );
 
+} /* namespace arte */
 
 } /* namespace ug */
 
