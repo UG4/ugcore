@@ -8,7 +8,6 @@
 #ifndef UGCORE_UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_DIAMONDSESTABLISH3D_H_
 #define UGCORE_UGBASE_LIB_GRID_ALGORITHMS_EXTRUSION_DIAMONDSESTABLISH3D_H_
 
-#include <boost/function.hpp>
 #include <stack>
 #include <vector>
 #include "lib_grid/lg_base.h"

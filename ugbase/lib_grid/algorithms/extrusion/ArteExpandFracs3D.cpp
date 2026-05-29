@@ -41,7 +41,6 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <boost/function.hpp>
 
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "lib_grid/callbacks/callbacks.h"

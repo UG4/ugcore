@@ -80,7 +80,7 @@ post_message(const TMsg& msg)
 
 template <class TMsg>
 MessageHub::SPCallbackId MessageHub::
-register_callback_impl(boost::function<void (const IMessage&)> callback,
+register_callback_impl(std::function<void (const IMessage&)> callback,
 					   bool autoFree)
 {
 	size_t id = GetUniqueTypeID<TMsg>();

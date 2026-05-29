@@ -35,7 +35,6 @@
 
 #include <cmath>
 
-#include <boost/function.hpp>
 
 #include "common/common.h"
 
