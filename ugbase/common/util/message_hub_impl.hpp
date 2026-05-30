@@ -33,6 +33,8 @@
 #ifndef __H__UG__message_hub_impl__
 #define __H__UG__message_hub_impl__
 
+// #include <boost/bind.hpp> // for boost::bind
+
 namespace ug
 {
 
@@ -57,7 +59,11 @@ register_class_callback(TClass* cls,
 	typedef void (TClass::*ClassCallback)(const IMessage&);
 
 	return register_callback_impl<TMsg>(
-					boost::bind((ClassCallback)callback, cls, _1),
+					//boost::bind((ClassCallback)callback, cls, _1),
+					[callback, cls](const IMessage& msg) {
+        				auto const& derived = static_cast<const TMsg&>(msg);
+						(cls->*callback)(derived);
+    				},
 					autoFree);
 }
 

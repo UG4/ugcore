@@ -37,9 +37,7 @@
 #include <list>
 #include <string>
 #include <map>
-#include <functional>
-
-#include <boost/bind.hpp>
+#include <functional> // for std::function
 
 #include "common/assert.h"
 #include "common/util/smart_pointer.h"
