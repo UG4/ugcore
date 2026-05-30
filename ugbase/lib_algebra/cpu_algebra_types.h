@@ -57,10 +57,22 @@ namespace ug{
 //   CPU Algebra
 ////////////////////////////////////////////////////////////////////////////////
 
-/*  Define different algebra types.
+/**  This module defines different algebra types.
+ *
  *  An Algebra should export the following typedef:
- *  - matrix_type
- *  - vector_type
+ *  - matrix_type (for representation of sparse matrices)
+ *  - vector_type (for representation of DoF vectors)
+ *  - flag_unit_type (for the elementary units of the DoF flag storage)
+ *
+ *  Furthermore, Algebra should define the following constants:
+ *  - blockSize (size of the elementary blocks, same as in AlgebraType)
+ *  - flagBlocksPerUnit (number of flag blocks stored in one elementary unit)
+ *
+ *  Flags are assigned to DoFs. A mapping assigning boolean values to DoF
+ *  indices is called a flag set. Every flag set is stored separately in
+ *  the s.c. flag units. These are bit arrays suiting in their length elementary
+ *  data types. The flags for DoFs belonging to one block of DoFs form a
+ *  block of flags.
  */
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -83,7 +95,12 @@ struct CPUAlgebra
 		typedef Vector<double> vector_type;
 #endif
 
-	static const int blockSize = 1;
+	static const int blockSize = 1; ///< i.e., storing scalar DoFs
+	
+	typedef unsigned int flag_unit_type; ///< elementary type to store DoF flags
+	static const int flagBlocksPerUnit = sizeof(flag_unit_type) * 8; ///< number of flag blocks per unit
+	
+	/// returns the algebra type
 	static AlgebraType get_type()
 	{
 		return AlgebraType(AlgebraType::CPU, 1);
@@ -134,7 +151,12 @@ struct CPUBlockAlgebra
 	typedef Vector<DenseVector<FixedArray1<double, TBlockSize> > > vector_type;
 #endif
 
-	static const int blockSize = TBlockSize;
+	static const int blockSize = TBlockSize; ///< the algebra is operating with small blocks
+	
+	typedef unsigned int flag_unit_type; ///< elementary type to store DoF flags
+	static const int flagBlocksPerUnit = (sizeof(flag_unit_type) * 8) / blockSize; ///< number of flag blocks per unit
+	
+	/// returns the algebra type
 	static AlgebraType get_type()
 	{
 		return AlgebraType(AlgebraType::CPU, TBlockSize);
@@ -156,7 +178,13 @@ struct CPUVariableBlockAlgebra
 	typedef Vector<DenseVector<VariableArray1<double> > > vector_type;
 #endif
 
-	static const int blockSize = AlgebraType::VariableBlockSize;
+	static const int blockSize = AlgebraType::VariableBlockSize; ///< the algebra is operating with blocks of variable type
+	
+	typedef unsigned int flag_unit_type; ///< elementary type to store DoF flags
+	static const int flagBlocksPerUnit = 1; ///< only one flag block per unit as we cannot compute the offset
+	/*ToDo: The size of the block is then restricted by sizeof(flag_unit_type)*8 */
+	
+	/// returns the algebra type
 	static AlgebraType get_type()
 	{
 		return AlgebraType(AlgebraType::CPU, AlgebraType::VariableBlockSize);

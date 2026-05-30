@@ -45,6 +45,13 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 
 /// class describing the type of an algebra
+/**
+ * Objects of this class store the characteristics of the data
+ * structures for storing DoF vectors (= "grid functions without grid"),
+ * matrices and DoF flags. Note that these objects are not unique.
+ * They are not refered to but copied, i.e. no run time changes in the
+ * particular algebra types are possible.
+ */
 class AlgebraType
 {
 	public:
@@ -71,15 +78,15 @@ class AlgebraType
 	///	constructor for variable block size
 		AlgebraType(const char* type);
 
-	///	returns the type
+	///	returns the type (see enum Type)
 		int type() const {return m_type;}
 
 	///	returns the blocksize
 		int blocksize() const {return m_blockSize;}
 
 	protected:
-		int m_type;
-		int m_blockSize;
+		int m_type; ///< see enum Type above
+		int m_blockSize; ///< size of the small blocks in the vectors and matrices
 };
 
 /// writes the Identifier to the output stream
