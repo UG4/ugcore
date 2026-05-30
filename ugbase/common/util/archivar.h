@@ -33,9 +33,10 @@
 #ifndef __H__UG_archivar
 #define __H__UG_archivar
 
-#include <boost/static_assert.hpp>
+#include <type_traits> // for std::is_base_of
+
 #include <boost/mpl/for_each.hpp>
-#include <boost/type_traits/is_base_of.hpp>
+
 #include "../boost_serialization.h"
 #include "detail/register_type_pair_functor.h"
 
@@ -47,7 +48,7 @@ namespace archivar{
 	template <typename TArchive, typename TBase, typename TDerived>
 	void CallArchiveOnDerivedClass (TArchive& ar, TBase& base, const char* name)
 	{
-		BOOST_STATIC_ASSERT((boost::is_base_of<TBase, TDerived>::value));
+		static_assert((std::is_base_of<TBase, TDerived>::value), "TDerived is not a subclass of TBase");
 		TDerived& derived = dynamic_cast<TDerived&>(base);
 		ar & make_nvp(name, derived);
 	}
@@ -85,7 +86,7 @@ public:
 	template <class TDerived>
 	void register_class(const char* name)
 	{
-		BOOST_STATIC_ASSERT((boost::is_base_of<TBase, TDerived>::value));
+		static_assert((std::is_base_of<TBase, TDerived>::value), "TDerived is not a subclass of TBase");
 		std::string typeName(typeid(TDerived).name());
 		m_callbackMap[typeName] =
 				&detail::archivar::CallArchiveOnDerivedClass<TArchive, TBase, TDerived>;

@@ -24,13 +24,25 @@ o: Done (obsolet)
 m: Neue Header (MPL).
 
 
+
+
 Weitere Dateiabhängigkeiten von <boost/*>
 
 - ugcore/ugbase/bridge/misc_bridges/test_bridge.cpp: <boost/bind.hpp>
-- ugcore/ugbase/common/util/message_hub.h: <boost/function_equal.hpp>, <boost/bind.hpp>
-- ugcore/ugbase/common/util/factory.h: <boost/static_assert.hpp>, <boost/mpl/for_each.hpp>, <boost/mpl/vector.hpp>, <boost/type_traits/is_base_of.hpp>
-- ugcore/ugbase/common/util/archivar.h: <boost/static_assert.hpp>, <boost/mpl/for_each.hpp>, <boost/type_traits/is_base_of.hpp>
-- ugcore/ugbase/common/util/field.h: <boost/serialization/split_member.hpp>
+- ugcore/ugbase/common/util/message_hub.h: <boost/bind.hpp>
+- ugcore/ugbase/common/util/factory.h: 
+    <boost/mpl/for_each.hpp>, 
+    <boost/mpl/vector.hpp>,
+
+ f: <boost/static_assert.hpp>
+ f: <boost/type_traits/is_base_of.hpp>
+- ugcore/ugbase/common/util/archivar.h: 
+ <boost/mpl/for_each.hpp>, 
+
+ f: <boost/static_assert.hpp>,
+ f: <boost/type_traits/is_base_of.hpp>
+- ugcore/ugbase/common/util/field.h: 
+<boost/serialization/split_member.hpp>
 - ugcore/ugbase/common/util/base64_file_writer.cpp: <boost/archive/iterators/transform_width.hpp>, <boost/archive/iterators/base64_from_binary.hpp>, <boost/archive/iterators/ostream_iterator.hpp>
 - ugcore/ugbase/common/util/smart_pointer.h: <boost/pointee.hpp>
 - ugcore/ugbase/common/util/bucket_sorter.hpp: (auskommentiert) <boost/limits.hpp>
@@ -69,3 +81,36 @@ Weitere Dateiabhängigkeiten von <boost/*>
 - ugcore/ugbase/lib_disc/ordering_strategies/algorithms/directional_ordering.cpp: <boost/graph/adjacency_list.hpp>, <boost/graph/graph_traits.hpp>, <boost/graph/properties.hpp>, <boost/graph/cuthill_mckee_ordering.hpp>
 
 Hinweis: Die Liste basiert auf einer Quelltextsuche nach "#include <boost/...>" unter `ugcore/ugbase`. Manche Einträge sind auskommentiert oder mehrfach vorhanden (z.B. Header + generierte Build-Dependency-Dateien). 
+
+
+## Migrationsvorschlag — Reihenfolge (priorisiert, kurz)
+
+1. Funktionale-APIs (niedriges Risiko): Ersetze boost::function / boost::bind durch std::function, std::bind oder besser: C++11-Lambdas. Dateien zuerst prüfen: alle Einträge in boost_undo.md, z.B. user_data.cpp, ugcore/ugbase/lib_grid/.... Aufwand: niedrig. Test: kompilieren + Unittests.
+
+2. Smart-Pointer (niedriges Risiko): Ersetze boost::shared_ptr, boost::weak_ptr, boost::make_shared durch std::shared_ptr, std::weak_ptr, std::make_shared. Aufwand: niedrig–mittel (API-Suche/typedefs). Test: kompilieren.
+
+3. Type Traits & Metaprogramming (niedriges bis mittleres Risiko): Migriere boost::is_base_of, boost::enable_if, boost::type_traits → <type_traits> (std::is_base_of, std::enable_if_t/std::enable_if). Für MPL- (Boost.MPL) heavy uses: erst analysieren; viele MPL-Patterns bleiben (siehe bridge/*, lib_disc/*). Aufwand: mittel. Test: kompilieren.
+
+4. String/Conversion (niedriges Risiko): Ersetze boost::lexical_cast durch std::to_string, std::stoi/std::stod oder std::stringstream wo passend. Aufwand: niedrig.
+
+5. Threading (mittleres Risiko): Ersetze boost::thread, boost::mutex, boost::condition_variable durch std::thread, std::mutex, std::condition_variable. Achte auf thread-API-Differenzen (interrupts, join/detach). Aufwand: mittel. Test: Laufzeit- und race-tests.
+
+6. Iterators / Algorithmic helpers (mittel): Manche Boost-Iteratoren/Adaptoren (z.B. filter_iterator, counting_iterator) fehlen in STL — entweder implementieren kleine wrappers oder verwenden einfache loops/lambdas. Aufwand: mittel.
+
+7. Small utilities (niedrig): Ersetze boost::pointee, boost::function_equal etc. durch kleine helper-Funktionen / Standard-Pattern. Aufwand: niedrig.
+
+8. I/O / Archiving / Serialization / Graph / MPL (hohes Risiko, defer):
+
+Boost.Serialization / Boost.Archive (boost/archive/...) hat keine direkte C++11-Ersatzlösung — entweder behalten oder auf Alternativen ( cereal, protobuf ) migrieren (großer Aufwand).
+Boost.Graph, Boost.MPL, Boost.Geometry sind größere Subsysteme; nur migrieren wenn zwingend (hoher Aufwand / Design-Entscheidung).
+Empfehlung: diese Schritte ans Ende setzen und erst planen, wenn kleinere Ersetzungen abgeschlossen und Tests stabil sind.
+9. Build & CI (parallel, kontinuierlich): Nach jeder Gruppen-Migration: Branch erstellen, CMake anpassen (schrittweise Boost-Componenten entfernen), komplette Build + Tests laufen lassen. Dokumentation der Änderungen in boost_undo.md/CHANGES.
+
+10. Final: Aufräumen & Deduplizieren: Entferne jetzt unnötige #include <boost/...>-Zeilen, dedupliziere boost_undo.md-Fundstellen, committen und ggf. PR.
+
+## Kurz-Checklist pro Migrationsschritt:
+
+a. Grep alle Vorkommen (Scope: ugbase / Dateien in boost_undo.md).
+b. Ändern mit kleinen, isolierten Kommits.
+c. Kompilieren + Tests ausführen.
+d. CI grün → weitermachen.
