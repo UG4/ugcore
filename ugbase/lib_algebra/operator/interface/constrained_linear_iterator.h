@@ -39,8 +39,7 @@
 #include "lib_disc/spatial_disc/domain_disc_interface.h"
 #include "preconditioner.h"
 
-#include <boost/core/enable_if.hpp>
-#include <boost/type_traits/is_base_of.hpp>
+#include <type_traits>
 
 namespace ug {
 
@@ -234,7 +233,7 @@ class ConstrainedLinearIterator : public TLinIt
 
 		// special implementation for IPreconditioner
 		template <typename S>
-		struct apply_update_defect_impl<S, typename boost::enable_if<boost::is_base_of<IPreconditioner<TAlgebra>, S> >::type>
+		struct apply_update_defect_impl<S, typename std::enable_if<std::is_base_of<IPreconditioner<TAlgebra>, S> >::type>
 		{
 			ConstrainedLinearIterator& cli;
 

@@ -39,8 +39,7 @@
 #include <typeinfo>
 #include <iostream>
 #include <functional>
-#include <boost/type_traits.hpp>
-
+#include <type_traits>
 
 #include "global_function.h"
 #include "class.h"
