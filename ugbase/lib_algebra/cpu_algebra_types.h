@@ -147,7 +147,7 @@ struct CPUBlockAlgebra
 	typedef ParallelMatrix<SparseMatrix<DenseMatrix<FixedArray2<double, TBlockSize, TBlockSize> > > > matrix_type;
 	typedef ParallelVector<Vector<DenseVector<FixedArray1<double, TBlockSize> > > > vector_type;
 #else
-	typedef  SparseMatrix<DenseMatrix<FixedArray2<double, TBlockSize, TBlockSize> > > matrix_type;
+	typedef SparseMatrix<DenseMatrix<FixedArray2<double, TBlockSize, TBlockSize> > > matrix_type;
 	typedef Vector<DenseVector<FixedArray1<double, TBlockSize> > > vector_type;
 #endif
 
@@ -174,7 +174,7 @@ struct CPUVariableBlockAlgebra
 	typedef ParallelMatrix<SparseMatrix<DenseMatrix<VariableArray2<double> > > > matrix_type;
 	typedef ParallelVector<Vector<DenseVector<VariableArray1<double> > > > vector_type;
 #else
-	typedef  SparseMatrix<DenseMatrix<VariableArray2<double> > > matrix_type;
+	typedef SparseMatrix<DenseMatrix<VariableArray2<double> > > matrix_type;
 	typedef Vector<DenseVector<VariableArray1<double> > > vector_type;
 #endif
 
