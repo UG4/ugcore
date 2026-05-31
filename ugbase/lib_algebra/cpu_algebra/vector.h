@@ -180,8 +180,15 @@ public:
 	inline double maxnorm() const;
 
 	size_t size() const { return m_size; }
+	
+public:
 
-
+	//! check if a flag set is present
+	inline bool flag_set_present(size_t s) const;
+	
+	//! get the flag unit in a set
+	inline flag_unit_type flag(size_t s, size_t i) const;
+	
 public: // output functions
 	//! print vector to console
 	void print(const char * const text = NULL) const;
@@ -226,7 +233,9 @@ private:
 	size_t m_size;			///< size of the vector (vector is from 0..size-1)
 	size_t m_capacity;		///< size of the vector (vector is from 0..size-1)
 	value_type *values;		///< array where the values are stored, size m_size
-
+	
+	VariableArray1<flag_unit_type*> flag_set; ///< flag sets associated with this vector
+	
 	//mutable vector_mode dist_mode;
 };
 

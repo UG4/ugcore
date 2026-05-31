@@ -57,6 +57,19 @@ inline const value_type &Vector<value_type>::operator [] (size_t i) const
 	return values[i];
 }
 
+template<typename value_type>
+inline bool Vector<value_type>::flag_set_present (size_t s) const
+{
+	if(s >= flag_set.size() || flag_set[s] == NULL)
+		return false;
+	return true;
+}
+
+template<typename value_type>
+inline typename Vector<value_type>::flag_unit_type Vector<value_type>::flag (size_t s, size_t i) const
+{
+	return flag_set[s][i];
+}
 
 // energynorm2 = x*(A*x)
 /*inline double Vector<value_type>::energynorm2(const SparseMatrix &A) const
