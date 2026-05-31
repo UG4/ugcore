@@ -62,17 +62,48 @@ namespace ug{
  *  An Algebra should export the following typedef:
  *  - matrix_type (for representation of sparse matrices)
  *  - vector_type (for representation of DoF vectors)
- *  - flag_unit_type (for the elementary units of the DoF flag storage)
+ *  - flag_unit_type (integer type for the elementary units of the DoF flag storage)
  *
  *  Furthermore, Algebra should define the following constants:
  *  - blockSize (size of the elementary blocks, same as in AlgebraType)
  *  - flagBlocksPerUnit (number of flag blocks stored in one elementary unit)
  *
- *  Flags are assigned to DoFs. A mapping assigning boolean values to DoF
- *  indices is called a flag set. Every flag set is stored separately in
- *  the s.c. flag units. These are bit arrays suiting in their length elementary
- *  data types. The flags for DoFs belonging to one block of DoFs form a
- *  block of flags.
+ *  The type 'vector_type' describes the storage of the values of the DoFs,
+ *  so that 'vector_type' is a type of a "grid function without the grid".
+ *  This type declares 'vector_type::value_type', the type of the values
+ *  of the considered grid functions. Note that 'value_type' may be a scalar
+ *  'double', or a small array (vector) of 'double's, or any other data
+ *  structure. In any case, it is refered to as a 'DoF block'. 'Vector_type'
+ *  can be considered as an array of these DoF blocks, and the indices
+ *  identify the entire block (not a particular element of it). These
+ *  indices are refered to as 'algebra indices'.
+ *
+ *  The 'matrix_type' describes representations of sparse matrices (or
+ *  linear operators) on these 'vectors' (of type 'vector_type'). Note that
+ *  the entries of these matrices are generally small matrices, too, and
+ *  have types 'matrix_type::value_type'. Only in the case of scalar
+ *  'vector_type::value_type', the type 'matrix_type::value_type' is scalar,
+ *  too.
+ *
+ *  Operations with 'vector_type::value_type' and 'matrix_type::value_type'
+ *  belong to the s.c. "small algebra", see lib_algebra/small_algebra. Using
+ *  those template functions, the implementation can be made independent
+ *  on the type.
+ *
+ *  Flags are assigned to DoF blocks. All flags assigned to the same DoF
+ *  block are stored in one or several flag units having the same index
+ *  as the DoF block itself. A mapping assigning the flag units to DoF block
+ *  indices is called a flag set. (E.i., one can consider a flag set as
+ *  an array of the flag units indexed in the same way as the DoF blocks
+ *  themseves.)
+ *
+ *  Inside the flag units, the flags are organized in blocks. The flag blocks
+ *  have the same size as the DoF blocks. Every flag in a flag block marks
+ *  the corresponding DoF in the DoF block and has for it the same meeting
+ *  as the other flags in the same block. Every entire flag block is stored
+ *  completely in one flag unit. How the blocks are placed in different units
+ *  (i.e. the allocation of the flag blocks in the flag sets), is regulated
+ *  by the flag manager.
  */
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -97,7 +128,7 @@ struct CPUAlgebra
 
 	static const int blockSize = 1; ///< i.e., storing scalar DoFs
 	
-	typedef unsigned int flag_unit_type; ///< elementary type to store DoF flags
+	typedef typename vector_type::flag_unit_type flag_unit_type; ///< elementary type to store DoF flags
 	static const int flagBlocksPerUnit = sizeof(flag_unit_type) * 8; ///< number of flag blocks per unit
 	
 	/// returns the algebra type
@@ -153,7 +184,7 @@ struct CPUBlockAlgebra
 
 	static const int blockSize = TBlockSize; ///< the algebra is operating with small blocks
 	
-	typedef unsigned int flag_unit_type; ///< elementary type to store DoF flags
+	typedef typename vector_type::flag_unit_type flag_unit_type; ///< elementary type to store DoF flags
 	static const int flagBlocksPerUnit = (sizeof(flag_unit_type) * 8) / blockSize; ///< number of flag blocks per unit
 	
 	/// returns the algebra type
@@ -180,7 +211,7 @@ struct CPUVariableBlockAlgebra
 
 	static const int blockSize = AlgebraType::VariableBlockSize; ///< the algebra is operating with blocks of variable type
 	
-	typedef unsigned int flag_unit_type; ///< elementary type to store DoF flags
+	typedef typename vector_type::flag_unit_type flag_unit_type; ///< elementary type to store DoF flags
 	static const int flagBlocksPerUnit = 1; ///< only one flag block per unit as we cannot compute the offset
 	/*ToDo: The size of the block is then restricted by sizeof(flag_unit_type)*8 */
 	

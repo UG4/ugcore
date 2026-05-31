@@ -57,6 +57,7 @@ public:
 	typedef TValueType value_type;
 	//typedef subvector<value_type> subvector_type;
 	typedef Vector<TValueType> vector_type;
+	typedef unsigned int flag_unit_type; ///< elementary type to store DoF flags
 
 //	IVECTOR_TO_VEC_FUNCTIONS(vector_type)
 
@@ -146,9 +147,9 @@ public:
 	/** add/set/get a local vector
 	 *
 	 * The local vector type must provide the following members:
-	 * - size()					- length of local vector
-	 * - index(size_t i)		- global index for component i
-	 * - operator[](size_t i)	- access to value of component i
+	 * - size()					- length of local vector (i.e. in one process if parallel)
+	 * - index(size_t i)		- global index for component (block) i
+	 * - operator[](size_t i)	- access to value of component (block) i
 	 */
 	template <typename V> void add(const V& u);
 	template <typename V> void set(const V& u);
