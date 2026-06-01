@@ -112,7 +112,7 @@ void SeparateSubsetsByLowerDimSelection(Grid& grid, SubsetHandler& sh,
 template <class TElem>
 void SeparateSubsetsByLowerDimSeparators(Grid& grid, SubsetHandler& sh,
 					bool appendAtEnd,
-					boost::function<bool (typename TElem::lower_dim_base_object*)>
+					std::function<bool (typename TElem::lower_dim_base_object*)>
 						cbIsSeparator)
 
 {

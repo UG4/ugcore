@@ -31,7 +31,6 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <boost/function.hpp>
 
 #include "expand_layers.h"
 #include "expand_layers_arte.h"
@@ -55,7 +54,11 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug
+{
+
+namespace arte
+{
 
 //using namespace ug::support;
 
@@ -8220,13 +8223,9 @@ bool ExpandFractures2dArte( Grid& grid, SubsetHandler& sh, vector<FractureInfo> 
 #endif
 
 
-
-
-
-
-
 }
 
+}
 
 
 }// end of namespace
