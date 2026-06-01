@@ -233,7 +233,8 @@ class ConstrainedLinearIterator : public TLinIt
 
 		// special implementation for IPreconditioner
 		template <typename S>
-		struct apply_update_defect_impl<S, typename std::enable_if<std::is_base_of<IPreconditioner<TAlgebra>, S> >::type>
+		struct apply_update_defect_impl<S, 
+			 typename std::enable_if<std::is_base_of<IPreconditioner<TAlgebra>, S>::value>::type>
 		{
 			ConstrainedLinearIterator& cli;
 
