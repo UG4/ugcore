@@ -37,8 +37,11 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
-#include <boost/type_traits.hpp>
-#include <boost/optional.hpp>
+
+#include <type_traits> // for std::is_void
+
+// std::optional is Cxx17 and not yet supported by all compilers, so we use boost::optional for now
+#include <boost/optional.hpp> // for boost::optional
 
 #include "parameter_stack.h"
 #include "function_traits.h"
@@ -842,7 +845,7 @@ class ExportedClass : public ExportedClassBaseImpl
 		                                       std::string options = "")
 		{
 		//	return-type must be void
-			if(!(boost::is_void< typename func_traits<TFunc>::return_type >::value))
+			if(!(std::is_void< typename func_traits<TFunc>::return_type >::value))
 			{
 				UG_THROW_REGISTRY_ERROR(name(),
 				"Trying to register constructor of class "

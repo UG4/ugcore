@@ -35,7 +35,6 @@
 
 #include <functional>
 #include <cstring>
-#include <boost/pointee.hpp>
 
 /// \addtogroup ugbase_common_util
 /// \{
@@ -111,6 +110,7 @@ class SmartPtr
 	friend class ConstSmartPtr<void>;
 
 	public:
+		using element_type = T;
 		explicit SmartPtr() : m_ptr(0), m_refCount(0)	{}
 		explicit SmartPtr(T* ptr) : m_ptr(ptr), m_refCount(0)	{if(ptr) m_refCount = new int(1);}
 		SmartPtr(NullSmartPtr) : m_ptr(0), m_refCount(0)	{}
@@ -297,6 +297,7 @@ class ConstSmartPtr
 	friend class ConstSmartPtr<void>;
 
 	public:
+		using element_type = T;
 		explicit ConstSmartPtr() : m_ptr(0), m_refCount(0)	{}
 		explicit ConstSmartPtr(const T* ptr) : m_ptr(ptr), m_refCount(0)	{if(ptr) m_refCount = new int(1);}
 		ConstSmartPtr(NullSmartPtr) : m_ptr(0), m_refCount(0)	{}
@@ -526,6 +527,7 @@ class SmartPtr<void>
 	friend class ConstSmartPtr<void>;
 
 	public:
+		using element_type = void;
 		explicit SmartPtr() : m_ptr(0), m_refCountPtr(0), m_freeFunc(0) {}
 
 		SmartPtr(NullSmartPtr) : m_ptr(0), m_refCountPtr(0), m_freeFunc(0)	{}
@@ -649,6 +651,7 @@ template <>
 class ConstSmartPtr<void>
 {
 	public:
+		using element_type = void;
 		explicit ConstSmartPtr() : m_ptr(0), m_refCountPtr(0), m_freeFunc(0) {}
 
 		explicit ConstSmartPtr(void* ptr, void (*freeFunc)(const void*)) :
@@ -845,20 +848,9 @@ SmartPtr<T> make_sp(T* inst)
 	return SmartPtr<T>(inst);
 }
 
-namespace boost
-{
-  template <class T>
-  struct pointee<SmartPtr<T> >
-  {
-      typedef T type;
-  };
+// boost::pointee has become deprecated. In C++11, it should be replaced by  
+// std::pointer_traits<my_ptr<T>>::element_type
 
-  template <class T>
-  struct pointee<ConstSmartPtr<T> >
-  {
-      typedef T type;
-  };
-}
 
 // end group ugbase_common_util
 /// \}

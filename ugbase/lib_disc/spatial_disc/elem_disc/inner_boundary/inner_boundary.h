@@ -42,7 +42,11 @@
 #ifndef __H__UG__LIB_DISC__SPACIAL_DISCRETIZATION__ELEM_DISC__NEUMANN_BOUNDARY__FV1__INNER_BOUNDARY__
 #define __H__UG__LIB_DISC__SPACIAL_DISCRETIZATION__ELEM_DISC__NEUMANN_BOUNDARY__FV1__INNER_BOUNDARY__
 
-#include <boost/function.hpp>
+#include <boost/mpl/empty.hpp>
+#include <boost/mpl/if.hpp>
+#include <boost/mpl/front.hpp>
+#include <boost/mpl/pop_front.hpp>
+
 #include <vector>
 #include <string>
 #include <utility>      // std::pair

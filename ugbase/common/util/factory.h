@@ -33,10 +33,9 @@
 #ifndef __H__UG_factory
 #define __H__UG_factory
 
-#include <boost/static_assert.hpp>
+#include <type_traits> // for std::is_base_of
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/vector.hpp>
-#include <boost/type_traits/is_base_of.hpp>
 #include "../boost_serialization.h"
 #include "detail/register_type_pair_functor.h"
 
@@ -107,7 +106,7 @@ public:
 	void register_class(const char* name)
 	{
 		// UG_LOG("registering derived class: " << className << std::endl);
-		BOOST_STATIC_ASSERT((boost::is_base_of<TBase, TDerived>::value));
+		static_assert((std::is_base_of<TBase, TDerived>::value), "TDerived is not a subclass of TBase");
 
 		std::string className(name);
 
