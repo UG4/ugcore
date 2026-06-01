@@ -158,11 +158,18 @@ Vector<value_type>::~Vector()
 template<typename value_type>
 void Vector<value_type>::destroy()
 {
+	// release the array of the DoFs
 	if(values)
 	{
 		delete [] values;
 		values = NULL;
 	}
+	
+	// release the flag sets
+	for(size_t s = 0; s < flag_set.size(); s++)
+		if(flag_set[s])
+			delete [] flag_set[s];
+	
 	m_size = 0;
 }
 

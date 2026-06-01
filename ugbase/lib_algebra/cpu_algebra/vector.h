@@ -234,6 +234,10 @@ private:
 	size_t m_capacity;		///< size of the vector (vector is from 0..size-1)
 	value_type *values;		///< array where the values are stored, size m_size
 	
+	/**
+	 * Not all flag sets must be present for a given vector.
+	 * If flag_set[s] == NULL then the corresponding flag set is missing.
+	 */
 	VariableArray1<flag_unit_type*> flag_set; ///< flag sets associated with this vector
 	
 	//mutable vector_mode dist_mode;
