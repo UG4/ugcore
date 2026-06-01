@@ -35,7 +35,7 @@ build-and-test:
     - cd $CI_PROJECT_DIR && git clone https://gitlab.com/ug4-project/ughub.git
     - export PATH="$PATH:$UGHUB_DIR"
     - mkdir $UG4_OLD_DIR && cd $UG4_OLD_DIR
-    - ughub init && ughub install ugcore ConvectionDiffusion
+    - ughub init && ughub install ugcore ConvectionDiffusion Limex SuperLU6
     - git clone https://gitlab.com/ug4-project/apps/unit_tests.git $UG4_OLD_DIR/apps/unit_tests
   script:
     - echo "Building and testing ug4"
