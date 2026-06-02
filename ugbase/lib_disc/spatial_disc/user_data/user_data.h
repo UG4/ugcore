@@ -35,6 +35,7 @@
 
 #include <vector>
 #include <cstring>
+#include <functional>
 
 #include "common/types.h"
 #include "lib_disc/common/local_algebra.h"
@@ -578,7 +579,7 @@ class CplUserData : public ICplUserData<dim>, public UserData<TData,dim,TRet>
 
 	///	registered callbacks
 //		typedef void (DataImport<TData,dim>::*CallbackFct)();
-		typedef boost::function<void ()> CallbackFct;
+		typedef std::function<void ()> CallbackFct;
 		std::vector<std::pair<DataImport<TData,dim>*, CallbackFct> > m_vCallback;
 
 };

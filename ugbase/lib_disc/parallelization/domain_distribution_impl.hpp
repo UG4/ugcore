@@ -33,6 +33,7 @@
 #ifndef __H__UG__domain_distribution_impl__
 #define __H__UG__domain_distribution_impl__
 
+#include <functional> // for std::function
 #include "domain_distribution.h"
 #include "lib_grid/algorithms/attachment_util.h"
 #include "lib_grid/parallelization/deprecated/load_balancing.h"
@@ -254,7 +255,7 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 	if(pMG->num<Volume>() > 0){
 		// do not use boost::function<...> f = wFct, since this leads to slicing
 		// of wFct and losing properties of derived objects
-		boost::function<int (Volume*, Volume*)> f = boost::ref(wFct);
+		std::function<int (Volume*, Volume*)> f = std::ref(wFct);
 		PartitionMultiGrid_MetisKway<Volume>(partitionHandler, *pMG, numPartitions, baseLevel, f);
 	//	assign all elements below baseLevel to bucketSubset
 		for(size_t lvl = 0; lvl < baseLevel; ++lvl)
@@ -262,7 +263,7 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 								 bucketSubset);
 	}
 	else if(pMG->num<Face>() > 0){
-		boost::function<int (Face*, Face*)> f = boost::ref(wFct);
+		std::function<int (Face*, Face*)> f = std::ref(wFct);
 		PartitionMultiGrid_MetisKway<Face>(partitionHandler, *pMG, numPartitions, baseLevel, f);
 	//	assign all elements below baseLevel to bucketSubset
 		for(size_t lvl = 0; lvl < baseLevel; ++lvl)
@@ -270,7 +271,7 @@ PartitionDomain_MetisKWay(TDomain& domain, PartitionMap& partitionMap,
 								 bucketSubset);
 	}
 	else if(pMG->num<Edge>() > 0){
-		boost::function<int (Edge*, Edge*)> f = boost::ref(wFct);
+		std::function<int (Edge*, Edge*)> f = std::ref(wFct);
 		PartitionMultiGrid_MetisKway<Edge>(partitionHandler, *pMG, numPartitions, baseLevel, f);
 	//	assign all elements below baseLevel to bucketSubset
 		for(size_t lvl = 0; lvl < baseLevel; ++lvl)
