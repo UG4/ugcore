@@ -81,8 +81,15 @@ public:
 public:
 	//! create a vector with specific size
 	void create(size_t size);
+	
 	//! create as a copy of other vector
 	void create(const Vector &v);
+	
+	//! create DoF flags
+	void create_flags(size_t n_sets);
+	
+	//! remove the DoF flags
+	void remove_flags();
 	
 	//! clones the vector (deep-copy) including values
 	SmartPtr<vector_type> clone() const;
@@ -183,11 +190,17 @@ public:
 	
 public:
 
+	//! number of flag sets in this vector
+	inline size_t num_flag_sets() const;
+	
 	//! check if a flag set is present
 	inline bool flag_set_present(size_t s) const;
 	
 	//! get the flag unit in a set
 	inline flag_unit_type flag(size_t s, size_t i) const;
+	
+	//! copies the flags
+	inline void copy_flags (const vector_type &v);
 	
 public: // output functions
 	//! print vector to console
@@ -228,6 +241,8 @@ protected:
 	virtual vector_type* virtual_clone_without_values() const;
 
 private:
+
+	//! releases the memory used by the vectors (including the DoFs and the flags)
 	void destroy();
 
 	size_t m_size;			///< size of the vector (vector is from 0..size-1)
@@ -236,9 +251,9 @@ private:
 	
 	/**
 	 * Not all flag sets must be present for a given vector.
-	 * If flag_set[s] == NULL then the corresponding flag set is missing.
+	 * If m_flag_set[s] == NULL then the corresponding flag set is missing.
 	 */
-	VariableArray1<flag_unit_type*> flag_set; ///< flag sets associated with this vector
+	VariableArray1<flag_unit_type*> m_flag_set; ///< flag sets associated with this vector
 	
 	//mutable vector_mode dist_mode;
 };

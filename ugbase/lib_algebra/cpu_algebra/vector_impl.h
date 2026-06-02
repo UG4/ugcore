@@ -43,98 +43,6 @@
 #define prefetchReadWrite(a)
 
 namespace ug{
-template<typename value_type>
-inline value_type &Vector<value_type>::operator [] (size_t i)
-{
-	UG_ASSERT(i < m_size, *this << ": tried to access element " << i);
-	return values[i];
-}
-
-template<typename value_type>
-inline const value_type &Vector<value_type>::operator [] (size_t i) const
-{
-	UG_ASSERT(i < m_size, *this << ": tried to access element " << i);
-	return values[i];
-}
-
-template<typename value_type>
-inline bool Vector<value_type>::flag_set_present (size_t s) const
-{
-	if(s >= flag_set.size() || flag_set[s] == NULL)
-		return false;
-	return true;
-}
-
-template<typename value_type>
-inline typename Vector<value_type>::flag_unit_type Vector<value_type>::flag (size_t s, size_t i) const
-{
-	return flag_set[s][i];
-}
-
-// energynorm2 = x*(A*x)
-/*inline double Vector<value_type>::energynorm2(const SparseMatrix &A) const
-{
-	double sum=0;
-	for(size_t i=0; i<m_size; i++)	sum += (A[i] * (*this)) * values[i];
-	//FOR_UNROLL_FWD(i, 0, m_size, UNROLL, sum += A[i] * (*this) * values[i]);
-	return sum;
-}*/
-
-// dotprod
-template<typename value_type>
-inline double Vector<value_type>::dotprod(const Vector &w) //const
-{
-	UG_ASSERT(m_size == w.m_size,  *this << " has not same size as " << w);
-
-	double sum=0;
-	for(size_t i=0; i<m_size; i++)	sum += VecProd(values[i], w[i]);
-	return sum;
-}
-
-// assign double to whole Vector
-template<typename value_type>
-inline double Vector<value_type>::operator = (double d)
-{
-	for(size_t i=0; i<m_size; i++)
-		values[i] = d;
-	return d;
-}
-
-template<typename value_type>
-inline void Vector<value_type>::set_random(double from, double to)
-{
-	for(size_t i=0; i<size(); i++)
-		for(size_t j=0; j<GetSize(values[i]); j++)
-			BlockRef(values[i], j) = urand(from, to);
-}
-
-
-template<typename value_type>
-inline void Vector<value_type>::operator = (const vector_type &v)
-{
-	resize(v.size());
-	for(size_t i=0; i<m_size; i++)
-		values[i] = v[i];
-}
-
-template<typename value_type>
-inline void Vector<value_type>::operator += (const vector_type &v)
-{
-	UG_ASSERT(v.size() == size(), "vector sizes must match! (" << v.size() << " != " << size() << ")");
-	for(size_t i=0; i<m_size; i++)
-		values[i] += v[i];
-}
-
-template<typename value_type>
-inline void Vector<value_type>::operator -= (const vector_type &v)
-{
-	UG_ASSERT(v.size() == size(), "vector sizes must match! (" << v.size() << " != " << size() << ")");
-	for(size_t i=0; i<m_size; i++)
-		values[i] -= v[i];
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 template<typename value_type>
 Vector<value_type>::Vector () : m_size(0), m_capacity(0), values(NULL)
@@ -156,6 +64,40 @@ Vector<value_type>::~Vector()
 }
 
 template<typename value_type>
+inline value_type &Vector<value_type>::operator [] (size_t i)
+{
+	UG_ASSERT(i < m_size, *this << ": tried to access element " << i);
+	return values[i];
+}
+
+template<typename value_type>
+inline const value_type &Vector<value_type>::operator [] (size_t i) const
+{
+	UG_ASSERT(i < m_size, *this << ": tried to access element " << i);
+	return values[i];
+}
+
+template<typename value_type>
+inline size_t Vector<value_type>::num_flag_sets () const
+{
+	return m_flag_set.size();
+}
+
+template<typename value_type>
+inline bool Vector<value_type>::flag_set_present (size_t s) const
+{
+	if(s >= m_flag_set.size() || m_flag_set[s] == NULL)
+		return false;
+	return true;
+}
+
+template<typename value_type>
+inline typename Vector<value_type>::flag_unit_type Vector<value_type>::flag (size_t s, size_t i) const
+{
+	return m_flag_set[s][i];
+}
+
+template<typename value_type>
 void Vector<value_type>::destroy()
 {
 	// release the array of the DoFs
@@ -166,14 +108,16 @@ void Vector<value_type>::destroy()
 	}
 	
 	// release the flag sets
-	for(size_t s = 0; s < flag_set.size(); s++)
-		if(flag_set[s])
-			delete [] flag_set[s];
+	remove_flags();
 	
+	// reset the size
 	m_size = 0;
 }
 
 
+/**
+ * Allocates a DoF vector of a given size
+ */
 template<typename value_type>
 void Vector<value_type>::create(size_t size)
 {
@@ -184,35 +128,202 @@ void Vector<value_type>::create(size_t size)
 	m_capacity = size;
 }
 
+/**
+ * Creates a new DoF vector by copying an existing one.
+ * 'This' vector should not be allocated before the call of this function.
+ * Otherwise, an exception is thrown.
+ */
+template<typename value_type>
+void Vector<value_type>::create(const Vector &v)
+{
+	UG_ASSERT(m_size == 0, *this << " already created");
+	m_size = v.m_size;
+	values = new value_type[m_size];
+	m_capacity = m_size;
 
+	// we cannot use memcpy here bcs of variable blocks.
+	for(size_t i=0; i<m_size; i++)
+		values[i] = v.values[i];
+}
+
+
+/**
+ * Creates the prescribed number of the flag sets for the current vector.
+ *
+ * Note that vectors are created without any flag sets. The flag sets should
+ * be created additionally by the call of this function.
+ *
+ * If there are already flag sets, they are not reset. The newly created
+ * flag sets are initialized with zeros.
+ */
+template<typename value_type>
+void Vector<value_type>::create_flags
+(
+	size_t n_sets ///< number of sets to create
+)
+{
+	if(m_flag_set.size() < n_sets) // we do not remove the possibly existing sets
+		m_flag_set.resize(n_sets); // this sets new entries to NULL
+	
+	for(size_t s = 0; s < m_flag_set.size(); s++)
+		if(m_flag_set[s] == NULL)
+		{
+			m_flag_set[s] = new flag_unit_type[m_capacity];
+			memset(reinterpret_cast<void *> (m_flag_set[s]), 0, m_capacity * sizeof(flag_unit_type));
+		}
+}
+
+/**
+ * Releases the memory allocated for all the flag sets
+ */
+template<typename value_type>
+void Vector<value_type>::remove_flags()
+{
+	// release the flag sets
+	for(size_t s = 0; s < m_flag_set.size(); s++)
+		if(m_flag_set[s])
+		{
+			delete [] m_flag_set[s];
+			m_flag_set[s] = NULL;
+		}
+}
+
+/**
+ * The virtual version of the cloning that can be redefined by a derived class.
+ */
 template<typename value_type>
 Vector<value_type>* Vector<value_type>::virtual_clone() const
 {
 	return new Vector<value_type>(*this);
 }
 
+/**
+ * The non-virtual version of the cloning.
+ */
 template<typename value_type>
 SmartPtr<Vector<value_type> > Vector<value_type>::clone() const
 {
 	return SmartPtr<Vector<value_type> >(this->virtual_clone());
 }
 
+/**
+ * The virtual version of the 'type cloning' that can be redefined by a derived class.
+ */
 template<typename value_type>
 Vector<value_type>* Vector<value_type>::virtual_clone_without_values() const
 {
 	return new Vector<value_type>(this->m_size);
 }
 
+/**
+ * The non-virtual version of the 'type cloning'.
+ */
 template<typename value_type>
 SmartPtr<Vector<value_type> > Vector<value_type>::clone_without_values() const
 {
 	return SmartPtr<Vector<value_type> >(this->virtual_clone_without_values());
 }
 
+/**
+ * Assigns a constant to the entire DoF vector
+ */
+template<typename value_type>
+inline double Vector<value_type>::operator = (double d)
+{
+	for(size_t i=0; i<m_size; i++)
+		values[i] = d;
+	return d;
+}
+
+/**
+ * Makes the sizes consistent and copies the values.
+ */
+template<typename value_type>
+inline void Vector<value_type>::operator = (const vector_type &v)
+{
+	resize(v.size());
+	for(size_t i=0; i<m_size; i++)
+		values[i] = v[i];
+}
+
+/**
+ * Copies the flag sets (and creates the missing ones). It is assumed that the
+ * DoF vectors have the same size (e.g. are cloned). The original flags sets
+ * in 'this' vector are destroyed.
+ */
+template<typename value_type>
+inline void Vector<value_type>::copy_flags (const vector_type &v)
+{
+	UG_ASSERT(m_size == v.size(), "Cloning flags of vectors of different sizes.");
+	
+	remove_flags();
+	
+	m_flag_set.resize(v.num_flag_sets());
+	
+	for(size_t s = 0; s < m_flag_set.size(); s++)
+		if(v.flag_set_present(s))
+		{
+			m_flag_set[s] = new flag_unit_type[m_capacity];
+			memcpy(reinterpret_cast<void *> (m_flag_set[s]),
+				reinterpret_cast<void *> (v.m_flag_set[s]), m_size * sizeof(flag_unit_type));
+			memset(reinterpret_cast<void *> (m_flag_set[s] + m_size), 0, (m_capacity - m_size) * sizeof(flag_unit_type));
+		}
+}
+
+/**
+ * Fills with random values
+ */
+template<typename value_type>
+inline void Vector<value_type>::set_random(double from, double to)
+{
+	for(size_t i=0; i<size(); i++)
+		for(size_t j=0; j<GetSize(values[i]); j++)
+			BlockRef(values[i], j) = urand(from, to);
+}
+
+/**
+ * Initializes the vector from an arbitrary container declaring an 'index' function
+ */
+template<typename value_type>
+template<typename V>
+void Vector<value_type>::set(const V& u)
+{
+	for(size_t i=0; i < u.size(); i++)
+		values[u.index(i)] = u[i];
+}
+
+/**
+ * Initializes the vector from an arbitrary array
+ */
+template<typename value_type>
+void Vector<value_type>::set(const value_type *u, const size_t *indices, size_t nr)
+{
+	for(size_t i=0; i < nr; i++)
+		values[indices[i]] = u[i];
+}
+
+template<typename value_type>
+template<typename V>
+void Vector<value_type>::get(V& u) const
+{
+	for(size_t i=0; i < u.size(); i++)
+		u[i] = values[u.index(i)];
+}
+
+template<typename value_type>
+void Vector<value_type>::get(value_type *u, const size_t *indices, size_t nr) const
+{
+	for(size_t i=0; i < nr; i++)
+		u[i] = values[indices[i]] ;
+}
+
+
 template<typename value_type>
 void Vector<value_type>::reserve_exactly(size_t newCapacity, bool bCopyValues)
 {
 	UG_ASSERT(newCapacity >= m_size, "use resize, then reserve_exactly");
+	
+//	Enlarge teh array for the DoFs
 	value_type *new_values = new value_type[newCapacity];	
 	// we cannot use memcpy here bcs of variable blocks.
 	if(values != NULL && bCopyValues)
@@ -224,6 +335,20 @@ void Vector<value_type>::reserve_exactly(size_t newCapacity, bool bCopyValues)
 	}
 	if(values) delete [] values;
 	values = new_values;
+	
+//	Now enlage the existing flag sets
+	for(size_t s = 0; s < m_flag_set.size(); s++)
+		if(m_flag_set[s])
+		{
+			flag_unit_type *new_flag_set = new flag_unit_type[newCapacity];
+			memcpy(reinterpret_cast<void *> (new_flag_set),
+				reinterpret_cast<void *> (m_flag_set[s]), m_size * sizeof(flag_unit_type));
+			memset(reinterpret_cast<void *> (new_flag_set + m_size), 0, (newCapacity - m_size) * sizeof(flag_unit_type));
+			delete [] m_flag_set[s];
+			m_flag_set[s] = new_flag_set;
+		}
+
+//	Reset the capacity
 	m_capacity = newCapacity;
 }
 
@@ -241,7 +366,7 @@ void Vector<value_type>::resize_sloppy(size_t newSize, bool bCopyValues)
 	if(newSize > m_capacity)
 	{
 		size_t newCapacity = m_size/2 + newSize;
-		reserve_exactly(newCapacity, true);
+		reserve_exactly(newCapacity, true); //ToDo: true or bCopyValues???
 	}
 	m_size = newSize;
 }
@@ -250,27 +375,14 @@ template<typename value_type>
 void Vector<value_type>::resize_exactly(size_t newSize, bool bCopyValues)
 {
 	if(newSize > m_capacity)
-		reserve_exactly(newSize, true);
+		reserve_exactly(newSize, true); //ToDo: true or bCopyValues???
 	m_size = newSize;
 }
 
 
-
-template<typename value_type>
-void Vector<value_type>::create(const Vector &v)
-{
-	UG_ASSERT(m_size == 0, *this << " already created");
-	m_size = v.m_size;
-	values = new value_type[m_size];
-	m_capacity = m_size;
-
-	// we cannot use memcpy here bcs of variable blocks.
-	for(size_t i=0; i<m_size; i++)
-		values[i] = v.values[i];
-}
-
-
-// print
+/**
+ * Prints a the DoF values to stdout
+ */
 template<typename value_type>
 void Vector<value_type>::print(const char * const text) const
 {
@@ -284,6 +396,9 @@ void Vector<value_type>::print(const char * const text) const
 }
 
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 template<typename value_type>
 template<typename V>
 void Vector<value_type>::add(const V& u)
@@ -293,23 +408,12 @@ void Vector<value_type>::add(const V& u)
 }
 
 template<typename value_type>
-template<typename V>
-void Vector<value_type>::set(const V& u)
+inline void Vector<value_type>::operator += (const vector_type &v)
 {
-	for(size_t i=0; i < u.size(); i++)
-		values[u.index(i)] = u[i];
+	UG_ASSERT(v.size() == size(), "vector sizes must match! (" << v.size() << " != " << size() << ")");
+	for(size_t i=0; i<m_size; i++)
+		values[i] += v[i];
 }
-
-template<typename value_type>
-template<typename V>
-void Vector<value_type>::get(V& u) const
-{
-	for(size_t i=0; i < u.size(); i++)
-		u[i] = values[u.index(i)];
-}
-
-
-
 
 template<typename value_type>
 void Vector<value_type>::add(const value_type *u, const size_t *indices, size_t nr)
@@ -318,20 +422,28 @@ void Vector<value_type>::add(const value_type *u, const size_t *indices, size_t 
 		values[indices[i]] += u[i];
 }
 
-template<typename value_type>
-void Vector<value_type>::set(const value_type *u, const size_t *indices, size_t nr)
-{
-	for(size_t i=0; i < nr; i++)
-		values[indices[i]] = u[i];
-}
 
 template<typename value_type>
-void Vector<value_type>::get(value_type *u, const size_t *indices, size_t nr) const
+inline void Vector<value_type>::operator -= (const vector_type &v)
 {
-	for(size_t i=0; i < nr; i++)
-		u[i] = values[indices[i]] ;
+	UG_ASSERT(v.size() == size(), "vector sizes must match! (" << v.size() << " != " << size() << ")");
+	for(size_t i=0; i<m_size; i++)
+		values[i] -= v[i];
 }
 
+
+/**
+ * The Euclidean scalar product
+ */
+template<typename value_type>
+inline double Vector<value_type>::dotprod(const Vector &w) //const
+{
+	UG_ASSERT(m_size == w.m_size,  *this << " has not same size as " << w);
+
+	double sum=0;
+	for(size_t i=0; i<m_size; i++)	sum += VecProd(values[i], w[i]);
+	return sum;
+}
 
 template<typename value_type>
 double operator *(const TRANSPOSED<Vector<value_type> > &x, const Vector<value_type> &y)
