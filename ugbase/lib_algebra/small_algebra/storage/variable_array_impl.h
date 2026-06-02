@@ -59,6 +59,9 @@ VariableArray1<T>::VariableArray1(size_t n_)
 	resize(n_, false);
 }
 
+/**
+ * The copy constructor
+ */
 template<typename T>
 VariableArray1<T>::VariableArray1(const VariableArray1<T> &other)
 {
@@ -87,6 +90,13 @@ VariableArray1<T>::size() const
 	return n;
 }
 
+/**
+ * Reallocates the attached memory and (optionally) copies the
+ * values.
+ *
+ * If the new size is larger then the old one, the new elements are
+ * set to zero.
+ */
 template<typename T>
 bool
 VariableArray1<T>::resize(size_t newN, bool bCopyValues)

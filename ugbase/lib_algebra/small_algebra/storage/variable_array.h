@@ -74,12 +74,16 @@ public:
 
 public:
 	// capacity
+	
+	//! returns the size of the array
 	inline size_type
 	size() const;
-
+	
+	//! returns the size of the allocated memory (same as size())
 	inline size_type
 	capacity() const;
 
+	//! resizes the array
 	inline bool
 	resize(size_type n, bool bCopyValues=true);
 
@@ -88,6 +92,7 @@ public:
 
 	// Element access
 
+	//! same as operator[]
 	inline const T &
 	at (size_type i) const
 	{
@@ -95,6 +100,7 @@ public:
 		return operator[](i);
 	}
 
+	//! same as operator[]
 	inline T &
 	at (size_type i)
 	{
