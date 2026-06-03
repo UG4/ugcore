@@ -92,7 +92,11 @@ inline bool Vector<value_type>::flag_set_present (size_t s) const
 }
 
 template<typename value_type>
-inline typename Vector<value_type>::flag_unit_type Vector<value_type>::flag (size_t s, size_t i) const
+inline typename Vector<value_type>::flag_unit_type& Vector<value_type>::flag
+(
+	size_t i, ///< algebra index of the dof block
+	size_t s ///< index of the flag set
+) const
 {
 	return m_flag_set[s][i];
 }

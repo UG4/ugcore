@@ -196,8 +196,16 @@ public:
 	//! check if a flag set is present
 	inline bool flag_set_present(size_t s) const;
 	
-	//! get the flag unit in a set
-	inline flag_unit_type flag(size_t s, size_t i) const;
+	//! access the flag unit in a set
+	/**
+	 * Remark: To access particular flag blocks, use the functions
+	 * of the DoF flag manager, see dof_flag_manager.h
+	 */
+	inline flag_unit_type& flag
+	(
+		size_t i, ///< algebra index of the dof block
+		size_t s ///< index of the flag set
+	);
 	
 	//! copies the flags
 	inline void copy_flags (const vector_type &v);
