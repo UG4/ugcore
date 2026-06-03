@@ -96,7 +96,7 @@ inline typename Vector<value_type>::flag_unit_type& Vector<value_type>::flag
 (
 	size_t i, ///< algebra index of the dof block
 	size_t s ///< index of the flag set
-) const
+)
 {
 	return m_flag_set[s][i];
 }
