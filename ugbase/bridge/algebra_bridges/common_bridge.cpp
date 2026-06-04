@@ -53,6 +53,8 @@
 
 #include "lib_algebra/operator/debug_writer.h"
 
+#include "lib_algebra/dof_flag_manager.h"
+
 // operator util
 #include "lib_algebra/operator/preconditioner/iterator_product.h"
 #include "lib_algebra/operator/operator_util.h"
@@ -256,7 +258,31 @@ static void Algebra(Registry& reg, string grp)
 		reg.add_class_to_group(name, "DebugWritingObject", tag);
 	}
 
-// IVectorWriter (abstract base class)
+//	DoFFlagManager
+	{
+		typedef DeclareDoFFlags<TAlgebra> T;
+		string name = string("DeclareDoFFlags").append(suffix);
+		reg.add_class_<T>(name, grp)
+			.template add_constructor<void (*) ()> ()
+			.template add_constructor<void (*) (const char *)> ("FlagName")
+			.template add_constructor<void (*) (std::vector<std::string>)> ("FlagNames")
+			.add_method("print", &T::print);
+		;
+		reg.add_class_to_group(name, "DeclareDoFFlags", tag);
+		
+		reg.add_function("CreateDoFFlags", &CreateDoFFlags<TAlgebra>);
+		
+		// The two following functions should be called with the algebra specification,
+		// e.g. AddDoFFlagCPU1("a"). They are alternatives to DeclareDoFFlags.
+		reg.add_function("AddDoFFlag" + suffix, &AddDoFFlag<TAlgebra>);
+		reg.add_function("PrintDoFFlags" + suffix, &PrintDoFFlags<TAlgebra>);
+	}
+
+/////////////////////////
+//	Base Classes
+/////////////////////////
+
+//	IVectorWriter (abstract base class)
 	{
 		typedef IVectorWriter<vector_type> T;
 		string name = string("IVectorWriter").append(suffix);
@@ -264,11 +290,7 @@ static void Algebra(Registry& reg, string grp)
 				.add_method("update", &T::update, "", "v", "updates the vector v");
 		reg.add_class_to_group(name, "IVectorWriter", tag);
 	}
-
-/////////////////////////
-//	Base Classes
-/////////////////////////
-
+	
 //	ILinearOperator
 	{
 		typedef ILinearOperator<vector_type> T;

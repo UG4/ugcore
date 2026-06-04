@@ -61,7 +61,8 @@ public:
 	
 	static const int blockSize = algebra_type::blockSize;
 	static const int flagBlocksPerUnit = algebra_type::flagBlocksPerUnit;
-	static const flag_unit_type flagBlockFrame = (1 << (blockSize + 1)) - 1; // 1's, blockSize times
+	static const flag_unit_type flagBlockFrame
+		= (blockSize <= 0)? ~0 : (1 << (blockSize + 1)) - 1; // 1's, blockSize times
 
 /// Returns the static (single) flag manager for particular algebra
 	static DoFFlagManager* get();
@@ -104,7 +105,7 @@ public:
 			return;
 		}
 		
-		if(find_alloc_by_name(name) == NULL)
+		if(find_alloc_by_name(name) != NULL)
 		{
 			UG_THROW("DoFFlagManager::add: Attempt to add a flag block '" << name
 				<< "', but such name is already used.");
@@ -119,6 +120,7 @@ public:
 		//	allocate a new set
 			set++; block = 0;
 		}
+		else block++;
 		
 		m_flag_blocks.push_back(flag_block_alloc_type(name, set, block));
 	}
@@ -227,6 +229,8 @@ DoFFlagManager<TAlgebra>* DoFFlagManager<TAlgebra>::get()
 	return &dof_flag_manager;
 }
 
+/* The following functions and classes are implemented for the brige */
+
 ///	Adds flags to the dof flag manager
 template <typename TAlgebra>
 void AddDoFFlag
@@ -253,6 +257,45 @@ void CreateDoFFlags
 {
 	DoFFlagManager<TAlgebra>::get()->create_flags(*spVec);
 }
+
+/**
+ * The following class is an auxiliary tool to be able to automatically
+ * match the calls for the current algebra type in the scripts (like LUA).
+ * It does not contain any fields but serves like a function itself.
+ */
+template <typename TAlgebra>
+class DeclareDoFFlags
+{
+public:
+
+///	Dummy constructor
+	DeclareDoFFlags() {};
+
+///	This constructor simply adds a new dof flag to the dof flag manager
+	DeclareDoFFlags
+	(
+		const char* name ///< name for the new flag block
+	)
+	{
+		DoFFlagManager<TAlgebra>::get()->add(name);
+	}
+
+///	This constructor simply adds new dof flags to the dof flag manager
+	DeclareDoFFlags
+	(
+		std::vector<std::string> names ///< name for the new flag block
+	)
+	{
+		for(size_t i = 0; i < names.size(); i++)
+			DoFFlagManager<TAlgebra>::get()->add(names[i].c_str());
+	}
+
+///	Prints the dof flag names
+	void print()
+	{
+		DoFFlagManager<TAlgebra>::get()->print();
+	}
+};
 
 }
 #endif /* __H__UG__LIB_ALGEBRA__DOF_FLAG_MANAGER__ */
