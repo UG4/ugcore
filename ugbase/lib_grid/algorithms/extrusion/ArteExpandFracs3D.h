@@ -548,6 +548,11 @@ private:
 //	Grid::VolumeAttachmentAccessor<ABool> m_attAccsVolMightBeFromCrossPt;
 //
 //	bool specifyEndCrossCleftAttVols();
+
+	std::vector<Volume* > d_vecExpVols;
+	std::vector<Volume* > d_vecExpVolsTwo;
+	std::vector<Volume* > d_vecPairVols;
+
 };
 
 // specification has to be declared outside central class context, else compilation error

@@ -582,7 +582,9 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 
 				if( vol )
 				{
+					UG_LOG("assign komisches vol" << std::endl);
 					m_sh.assign_subset( vol, m_sh.num_subsets() );
+					m_sh.assign_subset( volOut, m_sh.num_subsets() );
 				}
 				else
 				{
@@ -591,18 +593,35 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 				}
 
 				if( paVol )
-						m_sh.assign_subset( paVol, m_sh.num_subsets() );
+				{
+					UG_LOG("assign komisches Paar vol" << std::endl);
+					m_sh.assign_subset( paVol, m_sh.num_subsets() );
+				}
 
 				Face * faceInner;
 				vmvc.spuckManif(faceInner);
 
 				if( support::checkIfFacesVerticesCoincide<IndexType>(faceInner,faceOuter))
 				{
+					UG_LOG("Gesichtspartner gefunden " << std::endl);
+
 					if( vol != volOut )
 					{
-						UG_LOG("doch den Partner zu finden " << std::endl);
-						m_sh.assign_subset( vol, m_sh.num_subsets() );
-						partnerFindable = true;
+						VrtxPair oldAndShiftVrtxInner;
+						vmvc.spuckOldAndShiftVrtx( oldAndShiftVrtxInner );
+
+						Vertex * oldVrtxInner = oldAndShiftVrtxInner.first;
+
+						if( oldVrtxInner == oldVrtxOuter )
+						{
+							UG_LOG("doch den Partner zu finden " << std::endl);
+							m_sh.assign_subset( vol, m_sh.num_subsets() );
+							partnerFindable = true;
+						}
+						else
+						{
+							UG_LOG("den falschen Partner gefunden " << std::endl);
+						}
 					}
 				}
 
@@ -649,14 +668,33 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 					}
 					else
 					{
+						m_sh.assign_subset( osv.first, m_sh.num_subsets() );
 						m_sh.assign_subset( osv.second, m_sh.num_subsets() );
 						m_sh.assign_subset( oldVrtxOuter, m_sh.num_subsets() );
 						m_sh.assign_subset( oldVrtxInner, m_sh.num_subsets() );
+						m_sh.assign_subset( volOut, m_sh.num_subsets() );
 
 						UG_LOG("die Vertizes sind nicht gleich " << std::endl);
+
+						return false;
 					}
 
 
+				}
+				else
+				{
+					m_sh.assign_subset( faceOuter, m_sh.num_subsets());
+					m_sh.assign_subset( oldVrtxOuter, m_sh.num_subsets() );
+					m_sh.assign_subset( shiftVrtxOuter, m_sh.num_subsets() );
+
+					Volume * testVol = vol;
+
+//						for(size_t i_edge = 0; i_edge < ->num_edges(); ++i_edge)
+//							{
+
+
+					UG_LOG("Partner unauffindbar" << std::endl);
+					return false;
 				}
 
 
@@ -900,12 +938,36 @@ bool DiamondsEstablish3D::trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet(
 		return false;
 	}
 
-	VolumeElementTwin volElTwinOne( volOne, edgeOne, sudo );
-	VolumeElementTwin volElTwinTwo( volTwo, edgeTwo, sudo );
+	VolumeElementTwin volElTwinOne( volOne, edgeOne, sudo, volOnePartner );
+	VolumeElementTwin volElTwinTwo( volTwo, edgeTwo, sudo, volTwoPartner );
 
 	if( ! volElTwinOne.checkIntegrity() || ! volElTwinTwo.checkIntegrity() )
 	{
+		// TODO FIXME Paarvolumen Option einbauen, und zwar vorher, bevor es schief geht, bei ECC
 		UG_LOG("twins of vol edge not integer " << std::endl);
+
+		m_sh.assign_subset(volOne, m_sh.num_subsets());
+		m_sh.assign_subset(volTwo, m_sh.num_subsets());
+		m_sh.assign_subset(edgeOne, m_sh.num_subsets());
+		m_sh.assign_subset(edgeTwo, m_sh.num_subsets());
+
+
+		UG_LOG("Hat Partner " << useSomePartner << std::endl);
+
+		if( volOnePartner )
+		{
+			UG_LOG("one has partner " << std::endl);
+
+			m_sh.assign_subset( volOnePartner, m_sh.num_subsets() );
+		}
+
+		if( volTwoPartner )
+		{
+			UG_LOG("two has partner " << std::endl);
+
+			m_sh.assign_subset( volTwoPartner, m_sh.num_subsets() );
+		}
+
 		return false;
 	}
 

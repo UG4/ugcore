@@ -191,21 +191,26 @@ private:
 template <
 typename FULLDIMELEM,
 typename LOWDIMELEM,
-typename INDEXTYP
+typename INDEXTYP,
+typename = std::enable_if< std::is_pointer<FULLDIMELEM>::value>,
+typename = std::enable_if< std::is_pointer<LOWDIMELEM>::value>
 >
 class FulldimLowdimTwin
 {
 public:
 
+	// TODO FIXME Paarvolumen dazu machen, das bei ECC dabei ist ggf
+
 	FulldimLowdimTwin( FULLDIMELEM const & fulldimElem,
 					   LOWDIMELEM const & lowdimElem,
-					   INDEXTYP sudo
+					   INDEXTYP sudo,
+					   FULLDIMELEM const & fulldimElemPartner = nullptr
 				     )
-	: m_fullDimElem(fulldimElem), m_lowDimElem(lowdimElem), m_sudo(sudo)
+	: m_fullDimElem(fulldimElem), m_lowDimElem(lowdimElem), m_sudo(sudo), m_fullDimElemPartner(fulldimElemPartner)
 	{}
 
 	FulldimLowdimTwin()
-	: m_fullDimElem(nullptr), m_lowDimElem(nullptr), m_sudo(0)
+	: m_fullDimElem(nullptr), m_lowDimElem(nullptr), m_sudo(0), m_fullDimElemPartner(nullptr)
 	{}
 
 
@@ -213,6 +218,12 @@ public:
 	{
 		fulldimElem = m_fullDimElem;
 	}
+
+	void spuckFullDimElemPartner( FULLDIMELEM & fulldimElemPartner )
+	{
+		fulldimElemPartner = m_fullDimElemPartner;
+	}
+
 
 	void spuckLowDimElem( LOWDIMELEM & lowdimElem )
 	{
@@ -223,11 +234,15 @@ public:
 
 	void changeTheElems( FULLDIMELEM const & fulldimElem,
 						 LOWDIMELEM const & lowdimElem,
-						 INDEXTYP sudo )
+						 INDEXTYP sudo,
+						 FULLDIMELEM const & fullDimElemPartner = nullptr )
 	{
 		m_fullDimElem = fulldimElem;
 		m_lowDimElem = lowdimElem;
 		m_sudo = sudo;
+
+		if( fullDimElemPartner )
+			m_fullDimElemPartner = fullDimElemPartner;
 	}
 
 	// template check if volume and edge valid......
@@ -238,10 +253,28 @@ public:
 	>
 	bool checkIntegrity()
 	{
-		if( ! VolumeContains(m_fullDimElem,m_lowDimElem))
+		// TODO FIXME den Partner checken
+		if( ! VolumeContains(m_fullDimElem, m_lowDimElem))
 		{
 			UG_LOG("Volume does not contain edge for diams " << std::endl);
-			return false;
+
+			if( m_fullDimElemPartner )
+			{
+				UG_LOG("einen Partner hat es schonmal " << std::endl);
+
+				if( ! VolumeContains(m_fullDimElemPartner, m_lowDimElem))
+				{
+					UG_LOG("aber auch der hat die Ecke nicht" << std::endl);
+					return false;
+				}
+
+				UG_LOG("Partner doch gefunden" << std::endl);
+			}
+			else
+			{
+				UG_LOG("aber ohne Partner" << std::endl);
+				return false;
+			}
 		}
 
 		return true;
@@ -252,6 +285,7 @@ private:
 	FULLDIMELEM m_fullDimElem;
 	LOWDIMELEM m_lowDimElem;
 	INDEXTYP m_sudo;
+	FULLDIMELEM m_fullDimElemPartner;
 };
 
 ////////////////////////////////////////////////////////////
@@ -303,6 +337,10 @@ public:
 	using PairVrtcs = std::pair<VERTEXTYP,VERTEXTYP>;
 	using PairLowDimElem = std::pair<LOWDIMELEM,LOWDIMELEM>;
 
+	// TODO FIXME auch die Möglichkeit von Triplett
+	// dann durch Vektor
+	// oder vielleicht immer Vektor aber muss 2 oder 3 Länge sein
+
 	FullLowDimManifQuintuplet( PairFullLowDimTwin const & fullLowPr, MANIFELEM const & manif )
 	: m_pairFullLowDimTwin(fullLowPr),
 	  m_manifElem(manif),
@@ -321,6 +359,8 @@ public:
 	  m_sudo(0)
 	{};
 
+	// TODO FIXME das checkAlsoFace wieder abschaffen, muss immer richtig sein
+	// oder lassen aber dann besonderen Umgang für Fall, dass Triplett ist
 	template
 	<
 		typename = std::enable_if<std::is_same<Volume*,FULLDIMELEM>::value>,
@@ -335,6 +375,7 @@ public:
 			return false;
 		}
 
+		// TODO FIXME das muss auch wieder gecheckt werden, aber intelligenter
 		if( checkAlsoFace )
 		{
 			if( ! checkIntegrityFaceInBothVols())
