@@ -349,6 +349,7 @@ bool DiamondsEstablish3D::figureOutTheEdges()
 //		IndexType numLowdimElmsFnd = vmvcd.checkIntegrity(m_grid);
 //		if( numLowdimElmsFnd != 1 )
 		if( ! vmvcd.checkIntegrity(m_grid) )
+//		if( ! vmvcd.checkIntegrity() )
 		{
 			UG_LOG("number of lowdim elems found strange " << std::endl);
 			return false;
@@ -515,7 +516,10 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 							return false;
 						}
 
-						if( ! vef5.checkIntegrity( ! useSomePartner ) )
+//						if( ! vef5.checkIntegrity( ! useSomePartner ) )
+//						if( ! vef5.checkIntegrity( m_sh ) )
+//						if( ! vef5.checkIntegrity( m_sh ) )
+						if( ! vef5.checkIntegrity() )
 						{
 							UG_LOG("strange twin produced" << std::endl);
 							return false;
@@ -640,6 +644,14 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 							UG_LOG("den falschen Partner gefunden " << std::endl);
 						}
 					}
+					else
+					{
+						UG_LOG("Volumen ist dasselbe, kein Partner" << std::endl);
+					}
+				}
+				else
+				{
+					UG_LOG("keine gleichen Gesichter gesehen" << std::endl);
 				}
 			}
 
@@ -960,6 +972,18 @@ bool DiamondsEstablish3D::trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet(
 	VolumeElementTwin volElTwinOne( volOne, edgeOne, sudo, volOnePartner );
 	VolumeElementTwin volElTwinTwo( volTwo, edgeTwo, sudo, volTwoPartner );
 
+	if( ! volElTwinOne.setRelevantFulldimElem(m_grid))
+	{
+		UG_LOG("not possible to set first relevant fulldim elem " << std::endl);
+		return false;
+	}
+
+	if( ! volElTwinTwo.setRelevantFulldimElem(m_grid))
+	{
+		UG_LOG("not possible to set second relevant fulldim elem " << std::endl);
+		return false;
+	}
+
 	if( ! volElTwinOne.checkIntegrity() || ! volElTwinTwo.checkIntegrity() )
 	{
 		// TODO FIXME Paarvolumen Option einbauen, und zwar vorher, bevor es schief geht, bei ECC
@@ -994,15 +1018,37 @@ bool DiamondsEstablish3D::trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet(
 
 	vef5 = VolumeElementFaceQuintuplet( volElTwinPair, connectingFace );
 
-	if( useSomePartner )
-	{
-		// KKKKKKKKKKK TODO FIXME irgendwie noch ein drittes Paar dazu.......
-		// damit die Integrität wieder repariert wird dadurch......
-	}
+//	if( useSomePartner )
+//	{
+//		// KKKKKKKKKKK TODO FIXME irgendwie noch ein drittes Paar dazu.......
+//		// damit die Integrität wieder repariert wird dadurch......
+//	}
 
-	if( ! vef5.checkIntegrity( ! useSomePartner ) )
+//	if( ! vef5.checkIntegrity( ! useSomePartner ) )
+//	if( ! vef5.checkIntegrity( m_sh ) )
+	if( ! vef5.checkIntegrity() )
 	{
 		UG_LOG( "quitent not integer " << std::endl );
+
+		m_sh.assign_subset(volOne, m_sh.num_subsets());
+		m_sh.assign_subset(volTwo, m_sh.num_subsets());
+		m_sh.assign_subset(edgeOne, m_sh.num_subsets());
+		m_sh.assign_subset(edgeTwo, m_sh.num_subsets());
+		m_sh.assign_subset(connectingFace, m_sh.num_subsets() );
+
+		if( volOnePartner )
+		{
+			m_sh.assign_subset( volOnePartner, m_sh.num_subsets());
+			UG_LOG("Partner eins " << std::endl);
+		}
+
+		if( volTwoPartner )
+		{
+			UG_LOG("Partner zwei " << std::endl);
+			m_sh.assign_subset( volTwoPartner, m_sh.num_subsets());
+		}
+
+
 		return false;
 	}
 
@@ -1054,13 +1100,15 @@ bool DiamondsEstablish3D::establishElems2BeQuenched()
 
 				if( testEdges == edgPrOuter )
 				{
+//					if( ! vef5Inner.swapEntries( m_sh ) )
 					if( ! vef5Inner.swapEntries() )
 					{
 						UG_LOG("swapping not worked " << std::endl);
 						return false;
 					}
 
-					if( ! vef5Inner.checkIntegrity())
+//					if( ! vef5Inner.checkIntegrity( m_sh ))
+					if( ! vef5Inner.checkIntegrity() )
 					{
 						UG_LOG("not integer any more after sapping test" << std::endl);
 						return false;
@@ -1090,6 +1138,7 @@ bool DiamondsEstablish3D::establishElems2BeQuenched()
 
 		Elems2BQuenched elem2BQuenched( vfld5ThisEdgePr );
 
+//		if( ! elem2BQuenched.checkIntegrity( m_sh ))
 		if( ! elem2BQuenched.checkIntegrity())
 		{
 			UG_LOG("an elem to be quenched not integer" << std::endl);
@@ -1168,8 +1217,8 @@ void DiamondsEstablish3D::debugE2bQ(Elems2BQuenched & e2bq)
 
 				v.spuckPairFullLowDimTwin(pvv);
 
-				pvv.first.spuckFullDimElem(vol1);
-				pvv.second.spuckFullDimElem(vol2);
+				pvv.first.spuckRelevantFullDimElem(vol1);
+				pvv.second.spuckRelevantFullDimElem(vol2);
 
 				v.spuckManifElem( fac );
 
@@ -1305,6 +1354,7 @@ bool DiamondsEstablish3D::sortElems2BQuenched()
 
 		ElemGroupVrtx2BQuenched4Diams egv2b( vecElems2Q4ThisVrtx );
 
+//		if( ! egv2b.checkIntegrity( m_sh ) )
 		if( ! egv2b.checkIntegrity() )
 		{
 			UG_LOG("elem group not integer for vertex" << std::endl);
@@ -1633,10 +1683,10 @@ bool DiamondsEstablish3D::trafoQuintupleInfo2Attachments(VolumeElementFaceQuintu
 	Edge * edgOne;
 	Edge * edgTwo;
 
-	vetOne.spuckFullDimElem(volOne);
+	vetOne.spuckRelevantFullDimElem(volOne);
 	vetOne.spuckLowDimElem(edgOne);
 
-	vetTwo.spuckFullDimElem(volTwo);
+	vetTwo.spuckRelevantFullDimElem(volTwo);
 	vetTwo.spuckLowDimElem(edgTwo);
 
 	m_attAccsVolGetsShrinked[volOne] = true;
@@ -1832,8 +1882,8 @@ bool DiamondsEstablish3D::distributeInfosForShrinkingVols()
 				Volume * volOne;
 				Volume * volTwo;
 
-				vetOne.spuckFullDimElem(volOne);
-				vetTwo.spuckFullDimElem(volTwo);
+				vetOne.spuckRelevantFullDimElem(volOne);
+				vetTwo.spuckRelevantFullDimElem(volTwo);
 
 //				m_sh.assign_subset(volOne, m_sh.num_subsets());
 //				m_sh.assign_subset(volTwo, m_sh.num_subsets());
