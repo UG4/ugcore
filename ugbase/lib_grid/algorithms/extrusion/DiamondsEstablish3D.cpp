@@ -420,6 +420,31 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 
 		IndexType sudoOuter = outer.spuckSudo();
 
+//		Volume * volOut;
+//		outer.spuckFulldimElem(volOut);
+
+//		if( ! VolumeContains( volOut, oldVrtxOuter ) )
+//		{
+//			UG_LOG("das Volumen hat seinen eigenen Aussenvertex nicht dabei " << std::endl);
+//			m_sh.assign_subset( volOut, m_sh.num_subsets() );
+//			m_sh.assign_subset( oldVrtxOuter, m_sh.num_subsets() );
+//			m_sh.assign_subset( shiftVrtxOuter, m_sh.num_subsets() );
+//			m_sh.assign_subset( faceOuter,m_sh.num_subsets());
+//
+//			return false;
+//		}
+//
+//		if( ! VolumeContains( volOut, shiftVrtxOuter ) )
+//		{
+//			UG_LOG("das Volumen hat seinen eigenen Shiftvertex nicht dabei " << std::endl);
+//			m_sh.assign_subset( volOut, m_sh.num_subsets() );
+//			m_sh.assign_subset( oldVrtxOuter, m_sh.num_subsets() );
+//			m_sh.assign_subset( shiftVrtxOuter, m_sh.num_subsets() );
+//			m_sh.assign_subset( faceOuter,m_sh.num_subsets());
+//
+//			return false;
+//		}
+
 		int d_in = 0;
 
 		for( typename VecVolManifVrtxCombi::iterator itVMVInner = itVMVOuter + 1;

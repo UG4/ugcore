@@ -188,6 +188,8 @@ private:
 
 	Grid::VertexAttachmentAccessor<ABool> m_aaMarkVrtxAtTwoEndingCrossingClefts;
 
+	AInt m_aAdjMarkerNumOfSegmentsAtEndingCrossingCleft;
+	Grid::VertexAttachmentAccessor<AInt> m_aaMarkNumOfSegmentsAtEndingCrossingCleft;
 
 	bool countAndSelectFracBaseNums();
 
@@ -549,9 +551,10 @@ private:
 //
 //	bool specifyEndCrossCleftAttVols();
 
-	std::vector<Volume* > d_vecExpVols;
-	std::vector<Volume* > d_vecExpVolsTwo;
-	std::vector<Volume* > d_vecPairVols;
+	// for debugging purposes only, to be removed later
+	std::vector<Volume* > md_vecExpVols;
+	std::vector<Volume* > md_vecExpVolsTwo;
+	std::vector<Volume* > md_vecPairVols;
 
 };
 

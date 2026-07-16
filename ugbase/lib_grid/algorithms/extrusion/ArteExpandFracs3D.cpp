@@ -103,6 +103,8 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_aaMarkVrtxAtEndingCrossingCleft(Grid::VertexAttachmentAccessor<ABool>()),
 	  m_aAdjMarkerVrtxAtTwoEndingCrossingClefts(ABool()),
 	  m_aaMarkVrtxAtTwoEndingCrossingClefts(Grid::VertexAttachmentAccessor<ABool>()),
+	  m_aAdjMarkerNumOfSegmentsAtEndingCrossingCleft(AInt()),
+	  m_aaMarkNumOfSegmentsAtEndingCrossingCleft(Grid::VertexAttachmentAccessor<AInt>()),
 //	  m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract(ABool()),
 //	  m_aaMarkVrtx2AtInnerEndOfEndingCrossingFract(Grid::VertexAttachmentAccessor<ABool>()),
 	  m_needToSplitEdgesConnectingNeighbrdEndingCrossCleftVrtx(false),
@@ -145,7 +147,10 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_vrtcsViolatingExpansion(std::vector<Vertex*>()),
 	  m_volsViolatingExpansion(std::vector<Volume*>()),
 	  m_vecVolManifVrtxCombiToShrink4Diams(VecVolManifVrtxCombi()),
-	  m_vecSideDiamElmsDirectCreate(VecSideDiamElemsDirectCreated())
+	  m_vecSideDiamElmsDirectCreate(VecSideDiamElemsDirectCreated()),
+	  md_vecExpVols(std::vector<Volume* >()),
+	  md_vecExpVolsTwo(std::vector<Volume* >()),
+	  md_vecPairVols(std::vector<Volume* >())
 	  // m_vecVolMightBeFromCrossCleftPt(std::vector<Volume*>)
 //	  m_attVolIsNotFromCrossPt(ABool())
 //	  m_attAccsVolIsNotFromCrossPt(Grid::VolumeAttachmentAccessor<ABool>()),
@@ -989,6 +994,10 @@ bool ArteExpandFracs3D::attachMarkers()
 
 	m_aaMarkVrtxAtTwoEndingCrossingClefts = Grid::VertexAttachmentAccessor<ABool>( m_grid, m_aAdjMarkerVrtxAtTwoEndingCrossingClefts );
 
+	m_aAdjMarkerNumOfSegmentsAtEndingCrossingCleft = AInt();
+	m_grid.attach_to_vertices( m_aAdjMarkerNumOfSegmentsAtEndingCrossingCleft, 0 );
+
+	m_aaMarkNumOfSegmentsAtEndingCrossingCleft = Grid::VertexAttachmentAccessor<AInt>( m_grid, m_aAdjMarkerNumOfSegmentsAtEndingCrossingCleft );
 
 	//
 //	m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract = ABool();
@@ -1134,6 +1143,8 @@ bool ArteExpandFracs3D::detachMarkers()
 	m_grid.detach_from_faces( m_aAdjMarkerFaceWithEndingCrossingCleft );
 	m_grid.detach_from_vertices( m_aAdjMarkerVrtxAtEndingCrossingCleft );
 	m_grid.detach_from_vertices( m_aAdjMarkerVrtxAtTwoEndingCrossingClefts );
+	m_grid.detach_from_vertices( m_aAdjMarkerNumOfSegmentsAtEndingCrossingCleft );
+
 //	m_grid.detach_from_vertices( m_aAdjMarkerVrtx2AtInnerEndOfEndingCrossingFract );
 
 	m_grid.detach_from_vertices( m_aAdjInfoEdges );
@@ -2353,6 +2364,8 @@ bool ArteExpandFracs3D::detectEndingCrossingCleftsSegmBased()
 
 				if( vecSegmLimSid.size() == 2 )
 					m_aaMarkVrtxAtTwoEndingCrossingClefts[vrt] = true;
+
+				m_aaMarkNumOfSegmentsAtEndingCrossingCleft[vrt] = vecSegmLimSid.size();
 
 				// the unclosed ending crossing faces
 				VecSegLimSidesFractFace vecSegmLimSiFFUnclosed;
@@ -8385,30 +8398,30 @@ bool ArteExpandFracs3D::createNewElements()
 
 		IndexType d_sudoExpVols = m_sh.num_subsets();
 
-		for( Volume * ev : d_vecExpVols )
+		for( Volume * ev : md_vecExpVols )
 		{
 			m_sh.assign_subset( ev, d_sudoExpVols );
 		}
 
 		IndexType d_sudoExpVolsTwo = m_sh.num_subsets();
 
-		for( Volume * ev : d_vecExpVolsTwo )
+		for( Volume * ev : md_vecExpVolsTwo )
 		{
 			m_sh.assign_subset( ev, d_sudoExpVolsTwo );
 		}
 
 		IndexType d_sudoPairVols = m_sh.num_subsets();
 
-		for( Volume * ev : d_vecPairVols )
+		for( Volume * ev : md_vecPairVols )
 		{
 			m_sh.assign_subset( ev, d_sudoPairVols );
 		}
 
-		UG_LOG("number exp vols " << d_vecExpVols.size() << std::endl);
+		UG_LOG("number exp vols " << md_vecExpVols.size() << std::endl);
 
-		UG_LOG("number exp vols Two " << d_vecExpVolsTwo.size() << std::endl);
+		UG_LOG("number exp vols Two " << md_vecExpVolsTwo.size() << std::endl);
 
-		UG_LOG("number pair vols " << d_vecPairVols.size() << std::endl);
+		UG_LOG("number pair vols " << md_vecPairVols.size() << std::endl);
 
 		return false;
 	}
@@ -11245,7 +11258,7 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 									return false;
 								}
 
-								d_vecExpVols.push_back( expVol );
+								md_vecExpVols.push_back( expVol );
 							}
 //							else
 //							{
@@ -11336,7 +11349,7 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 										return false;
 									}
 
-									d_vecPairVols.push_back( expVol );
+									md_vecPairVols.push_back( expVol );
 								}
 								else
 								{
@@ -11348,7 +11361,7 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 
 								}
 
-								d_vecExpVolsTwo.push_back( expVolTwo );
+								md_vecExpVolsTwo.push_back( expVolTwo );
 
 							}
 
@@ -11414,10 +11427,15 @@ bool ArteExpandFracs3D::addNewVol2Shrink4Diams(std::vector<size_t> const & locVr
 		bool vrtxAtEndingCrossingCleft = m_aaMarkVrtxAtEndingCrossingCleft[crossVrtx];
 		bool vrtxAtTwoEndingCrossingClefts = m_aaMarkVrtxAtTwoEndingCrossingClefts[crossVrtx];
 
+		int numSegmentsAtEndingCrossingCleft = m_aaMarkNumOfSegmentsAtEndingCrossingCleft[crossVrtx];
+
 //		if( ! m_aaMarkVrtxAtEndingCrossingCleft[crossVrtx] || m_aaMarkVrtxAtTwoEndingCrossingClefts[crossVrtx] ) // || ! comesFromEndingCrossingFract )
 //		if( ! vrtxAtTwoEndingCrossingClefts && ! ( comesFromVolTwoType && vrtxAtEndingCrossingCleft ) )
 //		if( ! vrtxAtEndingCrossingCleft )
-		if( ! vrtxAtEndingCrossingCleft || addAlso4ECC )
+		// TODO FIXME hier ist der aktuell wichtigste Punkt WWWWWWWWWWWWWWWWWWWWWWWWWWWw
+		//if( ! vrtxAtEndingCrossingCleft || addAlso4ECC )
+//		if( ! vrtxAtEndingCrossingCleft )
+		if( ! vrtxAtEndingCrossingCleft || ( addAlso4ECC && numSegmentsAtEndingCrossingCleft == 3 ) )
 		{
 			//		for( IndexType i = 0; i < maxVolVrtxNum; i++ )
 			for( IndexType i = 0; i < maxFacVrtxNum; i++ )
@@ -11454,6 +11472,19 @@ bool ArteExpandFracs3D::addNewVol2Shrink4Diams(std::vector<size_t> const & locVr
 //						}
 
 						VolManifVrtxCombi vmvc( newVol, fac, osv, subs, vrtxAtEndingCrossingCleft, replacePartnerVol );
+
+						if( ! vmvc.setRelevantFulldimElem(m_grid) )
+						{
+							UG_LOG("relevante Fulldim ELem nicht setzbar" << std::endl);
+							m_sh.assign_subset(fac, m_sh.num_subsets());
+							m_sh.assign_subset(oldVrt, m_sh.num_subsets());
+							m_sh.assign_subset(shiVrt, m_sh.num_subsets());
+							m_sh.assign_subset(oldVol, m_sh.num_subsets());
+							m_sh.assign_subset(newVol, m_sh.num_subsets());
+							if( replacePartnerVol )
+								m_sh.assign_subset(replacePartnerVol, m_sh.num_subsets());
+							return false;
+						}
 
 						if( ! vmvc.checkIntegrity(m_grid))
 						{

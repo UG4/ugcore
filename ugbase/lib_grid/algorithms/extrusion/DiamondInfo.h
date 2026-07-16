@@ -36,6 +36,31 @@ namespace diamonds
 
 template
 <
+typename INDEXTYP,
+typename FULLDIMELM,
+typename LOWDIMELEM,
+typename = std::enable_if<std::is_same<Volume*,FULLDIMELM>::value>,
+typename = std::enable_if<std::is_same<Edge*,LOWDIMELEM>::value>
+>
+bool edgeIsInVolume( FULLDIMELM & vol, LOWDIMELEM & edg, Grid & grid )
+{
+	for( INDEXTYP iE = 0; iE < vol->num_edges(); iE++ )
+	{
+		LOWDIMELEM testEdg = grid.get_edge( vol, iE );
+
+		if( testEdg == edg )
+			return true;
+	}
+
+	UG_LOG("Die relevante Ecke unauffindbar " << std::endl);
+
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////////////
+
+template
+<
 typename FULLDIMELM,
 typename VERTEXTYP,
 typename INDEXTYP
@@ -98,12 +123,36 @@ public:
 	  m_sudo(sudo),
 	  m_lowDimElm(nullptr),
 	  m_hasOneEndingCrossingCleft(hasOneEndingCrossingCleft),
-	  m_volPartnerElm( partnerVol )
+	  m_volPartnerElm( partnerVol ),
+	  m_relevantVolElm(nullptr),
+	  m_connectingVolElm(nullptr)
 	{};
 
 	void spuckFulldimElem( FULLDIMELEM & vol ) { vol = m_volElm; }
 
 	void spuckFulldimPartnerElem( FULLDIMELEM & partVol ) { partVol = m_volPartnerElm; }
+
+	bool spuckRelevantFulldimElem( FULLDIMELEM & vol )
+	{
+		if( m_relevantVolElm )
+		{
+			vol = m_relevantVolElm;
+			return true;
+		}
+
+		return false;
+	}
+
+	bool spuckConnectingFulldimElem( FULLDIMELEM & vol )
+	{
+		if( m_connectingVolElm )
+		{
+			vol = m_connectingVolElm;
+			return true;
+		}
+
+		return false;
+	}
 
 	void spuckManif( MANIFELEM & manif ) { manif = m_manifElm; }
 
@@ -127,6 +176,9 @@ public:
 		// only assigned again after integrity check:
 		m_lowDimElm = nullptr;
 		m_volPartnerElm = partnerVol;
+
+		m_relevantVolElm = nullptr;
+		m_connectingVolElm = nullptr;
 	}
 
 	// compute the edge which connects the both vertices!!!!
@@ -139,6 +191,12 @@ public:
 	>
 	bool checkIntegrity( Grid & grid )
 	{
+		if( ! m_relevantVolElm || ! m_connectingVolElm )
+		{
+			UG_LOG("relevant oder conn elem nicht bestimmt " << std::endl);
+			return false;
+		}
+
 		INDEXTYP edgeFound = 0;
 
 		FULLDIMELEM testElm = m_volElm;
@@ -170,6 +228,37 @@ public:
 		return true;
 	}
 
+	bool setRelevantFulldimElem( Grid & grid )
+	{
+		if( ! m_volElm )
+		{
+			UG_LOG("cannot test and set for empty vol" << std::endl);
+			return false;
+		}
+
+		m_connectingVolElm = m_volElm;
+
+		if( edgeIsInVolume<INDEXTYP>( m_volElm, m_lowDimElm, grid ) )
+		{
+			m_relevantVolElm = m_volElm;
+		}
+
+		if( ! m_volPartnerElm )
+		{
+			UG_LOG("ecke nicht in haupt aber auch nicht neben " << std::endl);
+			return false;
+		}
+
+		if( edgeIsInVolume<INDEXTYP>( m_volPartnerElm, m_lowDimElm, grid ) )
+		{
+			m_relevantVolElm = m_volPartnerElm;
+			return true;
+		}
+
+		UG_LOG("schon wieder keine Zuordnung " << std::endl);
+
+		return false;
+	}
 
 private:
 
@@ -180,6 +269,8 @@ private:
 	LOWDIMELM m_lowDimElm;
 	bool m_hasOneEndingCrossingCleft;
 	FULLDIMELEM m_volPartnerElm;
+	FULLDIMELEM m_relevantVolElm;
+	FULLDIMELEM m_connectingVolElm;
 
 
 };
@@ -232,7 +323,7 @@ public:
 
 		m_connectingFullDimElem = m_fullDimElem;
 
-		if( edgeIsInVolume( m_fullDimElem, m_lowDimElem, grid ) )
+		if( edgeIsInVolume<INDEXTYP>( m_fullDimElem, m_lowDimElem, grid ) )
 		{
 			m_relevantFullDimElem = m_fullDimElem;
 
@@ -245,7 +336,7 @@ public:
 			return false;
 		}
 
-		if( edgeIsInVolume( m_fullDimElemPartner, m_lowDimElem, grid ) )
+		if( edgeIsInVolume<INDEXTYP>( m_fullDimElemPartner, m_lowDimElem, grid ) )
 		{
 			m_relevantFullDimElem = m_fullDimElemPartner;
 
@@ -368,25 +459,25 @@ private:
 	FULLDIMELEM m_connectingFullDimElem;
 
 
-	template
-	<
-		typename = std::enable_if<std::is_same<Volume*,FULLDIMELEM>::value>,
-		typename = std::enable_if<std::is_same<Edge*,LOWDIMELEM>::value>
-	>
-	bool edgeIsInVolume( FULLDIMELEM & vol, LOWDIMELEM & edg, Grid & grid )
-	{
-		for( INDEXTYP iE = 0; iE < vol->num_edges(); iE++ )
-		{
-			LOWDIMELEM testEdg = grid.get_edge( vol, iE );
-
-			if( testEdg == edg )
-				return true;
-		}
-
-		UG_LOG("Die relevante Ecke unauffindbar " << std::endl);
-
-		return false;
-	}
+//	template
+//	<
+//		typename = std::enable_if<std::is_same<Volume*,FULLDIMELEM>::value>,
+//		typename = std::enable_if<std::is_same<Edge*,LOWDIMELEM>::value>
+//	>
+//	bool edgeIsInVolume( FULLDIMELEM & vol, LOWDIMELEM & edg, Grid & grid )
+//	{
+//		for( INDEXTYP iE = 0; iE < vol->num_edges(); iE++ )
+//		{
+//			LOWDIMELEM testEdg = grid.get_edge( vol, iE );
+//
+//			if( testEdg == edg )
+//				return true;
+//		}
+//
+//		UG_LOG("Die relevante Ecke unauffindbar " << std::endl);
+//
+//		return false;
+//	}
 
 };
 
@@ -607,10 +698,9 @@ private:
 	bool checkIntegrityFaceInVol( FullLowDimTwin & fldt )
 //	bool checkIntegrityFaceInVol( FullLowDimTwin & fldt, SubsetHandler & sh )
 	{
-		// TODO FIXME hier muss getestet werden, ob es einen Partner gibt, und wenn ja,
+		// hier muss getestet werden, ob es einen Partner gibt, und wenn ja,
 		// dann muss getestet werden, ob er das face enthält!
 		// in einem Spezialfall bezieht sich das Ganze dann auf eine Ecke nur
-		// EEEEEEEEEEEEEEEEEEEEEEEEEEEEe
 
 		FULLDIMELEM connectingFulldimElem;
 
