@@ -11435,7 +11435,7 @@ bool ArteExpandFracs3D::addNewVol2Shrink4Diams(std::vector<size_t> const & locVr
 		// TODO FIXME hier ist der aktuell wichtigste Punkt WWWWWWWWWWWWWWWWWWWWWWWWWWWw
 		//if( ! vrtxAtEndingCrossingCleft || addAlso4ECC )
 //		if( ! vrtxAtEndingCrossingCleft )
-		if( ! vrtxAtEndingCrossingCleft || ( addAlso4ECC && numSegmentsAtEndingCrossingCleft == 3 ) )
+		if( ! vrtxAtEndingCrossingCleft || ( addAlso4ECC && numSegmentsAtEndingCrossingCleft == 3 && vrtxAtEndingCrossingCleft ) )
 		{
 			//		for( IndexType i = 0; i < maxVolVrtxNum; i++ )
 			for( IndexType i = 0; i < maxFacVrtxNum; i++ )
@@ -11473,18 +11473,18 @@ bool ArteExpandFracs3D::addNewVol2Shrink4Diams(std::vector<size_t> const & locVr
 
 						VolManifVrtxCombi vmvc( newVol, fac, osv, subs, vrtxAtEndingCrossingCleft, replacePartnerVol );
 
-						if( ! vmvc.setRelevantFulldimElem(m_grid) )
-						{
-							UG_LOG("relevante Fulldim ELem nicht setzbar" << std::endl);
-							m_sh.assign_subset(fac, m_sh.num_subsets());
-							m_sh.assign_subset(oldVrt, m_sh.num_subsets());
-							m_sh.assign_subset(shiVrt, m_sh.num_subsets());
-							m_sh.assign_subset(oldVol, m_sh.num_subsets());
-							m_sh.assign_subset(newVol, m_sh.num_subsets());
-							if( replacePartnerVol )
-								m_sh.assign_subset(replacePartnerVol, m_sh.num_subsets());
-							return false;
-						}
+//						if( ! vmvc.setRelevantFulldimElem(m_grid) )
+//						{
+//							UG_LOG("relevante Fulldim ELem nicht setzbar" << std::endl);
+//							m_sh.assign_subset(fac, m_sh.num_subsets());
+//							m_sh.assign_subset(oldVrt, m_sh.num_subsets());
+//							m_sh.assign_subset(shiVrt, m_sh.num_subsets());
+//							m_sh.assign_subset(oldVol, m_sh.num_subsets());
+//							m_sh.assign_subset(newVol, m_sh.num_subsets());
+//							if( replacePartnerVol )
+//								m_sh.assign_subset(replacePartnerVol, m_sh.num_subsets());
+//							return false;
+//						}
 
 						if( ! vmvc.checkIntegrity(m_grid))
 						{

@@ -594,182 +594,208 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 		if( ! partnerFound )
 		{
 			UG_LOG("no partner found " << std::endl);
-			Volume * volOut;
-			outer.spuckFulldimElem(volOut);
-//			VrtxPair & osv = oldAndShiftVrtxOuter;
-//			outer.spuckOldAndShiftVrtx( osv );
 
-//			bool partnerFindable = false;
+			Volume * volOutRel;
 
-			Volume * volFound = nullptr;
-			Volume * paVolFound = nullptr;
-			Vertex * innerShiftVrtxFound = nullptr;
-			Vertex * innerOldVrtxFound = nullptr;
+			outer.spuckRelevantFulldimElem( volOutRel);
 
+			Volume * volOutConn;
 
-			for( VolManifVrtxCombi & vmvc : m_vecVolManifVrtxCombiToShrink4Diams )
-			{
-				Volume * vol;
-				Volume * paVol;
+			outer.spuckConnectingFulldimElem( volOutConn );
 
-				vmvc.spuckFulldimElem(vol);
-				vmvc.spuckFulldimPartnerElem(paVol);
-
-//				if( vol )
-//				{
-//					UG_LOG("assign komisches vol" << std::endl);
-//					m_sh.assign_subset( vol, m_sh.num_subsets() );
-//					m_sh.assign_subset( volOut, m_sh.num_subsets() );
-//				}
-//				else
-//				{
-//					UG_LOG("NO VOL BUT NEEDED FOR SURE" << std::endl);
-//					return false;
-//				}
-//
-//				if( paVol )
-//				{
-//					UG_LOG("assign komisches Paar vol" << std::endl);
-//					m_sh.assign_subset( paVol, m_sh.num_subsets() );
-//				}
-
-				Face * faceInner;
-				vmvc.spuckManif(faceInner);
-
-				if( support::checkIfFacesVerticesCoincide<IndexType>(faceInner,faceOuter))
-				{
-					UG_LOG("Gesichtspartner gefunden " << std::endl);
-
-					if( vol != volOut )
-					{
-						VrtxPair oldAndShiftVrtxInner;
-						vmvc.spuckOldAndShiftVrtx( oldAndShiftVrtxInner );
-
-						Vertex * oldVrtxInner = oldAndShiftVrtxInner.first;
-
-						if( oldVrtxInner == oldVrtxOuter )
-						{
-							UG_LOG("doch den Partner zu finden " << std::endl);
-							m_sh.assign_subset( vol, m_sh.num_subsets() );
-//							partnerFindable = true;
-
-							volFound = vol;
-							paVolFound = paVol;
-
-							VrtxPair oldAndShiftVrtxInner;
-							vmvc.spuckOldAndShiftVrtx( oldAndShiftVrtxInner );
-
-							innerOldVrtxFound = oldAndShiftVrtxInner.first;
-
-							innerShiftVrtxFound = oldAndShiftVrtxInner.second;
-
-						}
-						else
-						{
-							UG_LOG("den falschen Partner gefunden " << std::endl);
-						}
-					}
-					else
-					{
-						UG_LOG("Volumen ist dasselbe, kein Partner" << std::endl);
-					}
-				}
-				else
-				{
-					UG_LOG("keine gleichen Gesichter gesehen" << std::endl);
-				}
-			}
-
-
-
-			if( volFound )
-			{
-				m_sh.assign_subset(faceOuter,m_sh.num_subsets());
-				m_sh.assign_subset( volFound, m_sh.num_subsets() );
-				m_sh.assign_subset(volOut, m_sh.num_subsets());
-
-
-				UG_LOG("doch gefunden " << std::endl);
-
-				if( paVolFound )
-				{
-					UG_LOG("sogar Partner gef" << std::endl);
-					m_sh.assign_subset( paVolFound, m_sh.num_subsets());
-				}
-
-				if( innerOldVrtxFound == oldVrtxOuter )
-				{
-					UG_LOG("die Vertizes sind auch gleich" << std::endl);
-
-//					m_sh.assign_subset( oldAndShiftVrtxOuter.second, m_sh.num_subsets() );
-//					m_sh.assign_subset( oldAndShiftVrtxInner.second, m_sh.num_subsets() );
-
-					IndexType volOutFound = 0;
-
-					for( VolManifVrtxCombi & vmvc2 : m_vecVolManifVrtxCombiToShrink4Diams )
-					{
-						Volume * vol2;
-
-						vmvc2.spuckFulldimElem(vol2);
-
-						if( vol2 == volOut )
-						{
-							volOutFound++;
-						}
-					}
-
-					UG_LOG("outer volume found " << volOutFound << std::endl);
-
-//					return false;
-
-				}
-				else
-				{
-					UG_LOG("die Vertizes sind nicht gleich " << std::endl);
-
-//					return false;
-				}
-
-//				return false;
-			}
-			else
-			{
-
-				UG_LOG("Partner unauffindbar" << std::endl);
-//				return false;
-			}
-
-//			m_sh.assign_subset( osv.first, m_sh.num_subsets() );
-//			m_sh.assign_subset( osv.second, m_sh.num_subsets() );
-//			m_sh.assign_subset(faceOuter,m_sh.num_subsets());
-//			m_sh.assign_subset(volOut, m_sh.num_subsets());
-
-			m_sh.assign_subset( volOut, m_sh.num_subsets() );
+			m_sh.assign_subset( volOutRel, m_sh.num_subsets() );
 			m_sh.assign_subset( oldVrtxOuter, m_sh.num_subsets() );
 			m_sh.assign_subset( shiftVrtxOuter, m_sh.num_subsets() );
-			m_sh.assign_subset( faceOuter,m_sh.num_subsets());
+			m_sh.assign_subset( faceOuter, m_sh.num_subsets());
 
-			if( innerShiftVrtxFound )
-				m_sh.assign_subset( innerShiftVrtxFound, m_sh.num_subsets() );
-
-			if( volFound )
-				m_sh.assign_subset( volFound, m_sh.num_subsets());
-
-			if( paVolFound )
-				m_sh.assign_subset( paVolFound, m_sh.num_subsets());
-
-			if( innerOldVrtxFound && ( innerOldVrtxFound != oldVrtxOuter ) )
-				m_sh.assign_subset( innerOldVrtxFound, m_sh.num_subsets() );
-
-			if( innerShiftVrtxFound )
-				m_sh.assign_subset( innerShiftVrtxFound, m_sh.num_subsets() );
+			if( volOutRel != volOutConn )
+				m_sh.assign_subset( volOutConn, m_sh.num_subsets() );
 
 			return false;
+
 		}
 		else
 		{
 			itVMVOuter = vecVolManifVrtxCopy.erase(itVMVOuter);
 		}
+
+//		{
+//
+//			Volume * volOut;
+//
+//
+//
+//			outer.spuckFulldimElem(volOut);
+////			VrtxPair & osv = oldAndShiftVrtxOuter;
+////			outer.spuckOldAndShiftVrtx( osv );
+//
+////			bool partnerFindable = false;
+//
+//			Volume * volFound = nullptr;
+//			Volume * paVolFound = nullptr;
+//			Vertex * innerShiftVrtxFound = nullptr;
+//			Vertex * innerOldVrtxFound = nullptr;
+//
+//
+//			for( VolManifVrtxCombi & vmvc : m_vecVolManifVrtxCombiToShrink4Diams )
+//			{
+//				Volume * vol;
+//				Volume * paVol;
+//
+//				vmvc.spuckFulldimElem(vol);
+//				vmvc.spuckFulldimPartnerElem(paVol);
+//
+////				if( vol )
+////				{
+////					UG_LOG("assign komisches vol" << std::endl);
+////					m_sh.assign_subset( vol, m_sh.num_subsets() );
+////					m_sh.assign_subset( volOut, m_sh.num_subsets() );
+////				}
+////				else
+////				{
+////					UG_LOG("NO VOL BUT NEEDED FOR SURE" << std::endl);
+////					return false;
+////				}
+////
+////				if( paVol )
+////				{
+////					UG_LOG("assign komisches Paar vol" << std::endl);
+////					m_sh.assign_subset( paVol, m_sh.num_subsets() );
+////				}
+//
+//				Face * faceInner;
+//				vmvc.spuckManif(faceInner);
+//
+//				if( support::checkIfFacesVerticesCoincide<IndexType>(faceInner,faceOuter))
+//				{
+//					UG_LOG("Gesichtspartner gefunden " << std::endl);
+//
+//					if( vol != volOut )
+//					{
+//						VrtxPair oldAndShiftVrtxInner;
+//						vmvc.spuckOldAndShiftVrtx( oldAndShiftVrtxInner );
+//
+//						Vertex * oldVrtxInner = oldAndShiftVrtxInner.first;
+//
+//						if( oldVrtxInner == oldVrtxOuter )
+//						{
+//							UG_LOG("doch den Partner zu finden " << std::endl);
+//							m_sh.assign_subset( vol, m_sh.num_subsets() );
+////							partnerFindable = true;
+//
+//							volFound = vol;
+//							paVolFound = paVol;
+//
+//							VrtxPair oldAndShiftVrtxInner;
+//							vmvc.spuckOldAndShiftVrtx( oldAndShiftVrtxInner );
+//
+//							innerOldVrtxFound = oldAndShiftVrtxInner.first;
+//
+//							innerShiftVrtxFound = oldAndShiftVrtxInner.second;
+//
+//						}
+//						else
+//						{
+//							UG_LOG("den falschen Partner gefunden " << std::endl);
+//						}
+//					}
+//					else
+//					{
+//						UG_LOG("Volumen ist dasselbe, kein Partner" << std::endl);
+//					}
+//				}
+//				else
+//				{
+//					UG_LOG("keine gleichen Gesichter gesehen" << std::endl);
+//				}
+//			}
+//
+//
+//
+//			if( volFound )
+//			{
+//				m_sh.assign_subset(faceOuter,m_sh.num_subsets());
+//				m_sh.assign_subset( volFound, m_sh.num_subsets() );
+//				m_sh.assign_subset(volOut, m_sh.num_subsets());
+//
+//
+//				UG_LOG("doch gefunden " << std::endl);
+//
+//				if( paVolFound )
+//				{
+//					UG_LOG("sogar Partner gef" << std::endl);
+//					m_sh.assign_subset( paVolFound, m_sh.num_subsets());
+//				}
+//
+//				if( innerOldVrtxFound == oldVrtxOuter )
+//				{
+//					UG_LOG("die Vertizes sind auch gleich" << std::endl);
+//
+////					m_sh.assign_subset( oldAndShiftVrtxOuter.second, m_sh.num_subsets() );
+////					m_sh.assign_subset( oldAndShiftVrtxInner.second, m_sh.num_subsets() );
+//
+//					IndexType volOutFound = 0;
+//
+//					for( VolManifVrtxCombi & vmvc2 : m_vecVolManifVrtxCombiToShrink4Diams )
+//					{
+//						Volume * vol2;
+//
+//						vmvc2.spuckFulldimElem(vol2);
+//
+//						if( vol2 == volOut )
+//						{
+//							volOutFound++;
+//						}
+//					}
+//
+//					UG_LOG("outer volume found " << volOutFound << std::endl);
+//
+////					return false;
+//
+//				}
+//				else
+//				{
+//					UG_LOG("die Vertizes sind nicht gleich " << std::endl);
+//
+////					return false;
+//				}
+//
+////				return false;
+//			}
+//			else
+//			{
+//
+//				UG_LOG("Partner unauffindbar" << std::endl);
+////				return false;
+//			}
+//
+////			m_sh.assign_subset( osv.first, m_sh.num_subsets() );
+////			m_sh.assign_subset( osv.second, m_sh.num_subsets() );
+////			m_sh.assign_subset(faceOuter,m_sh.num_subsets());
+////			m_sh.assign_subset(volOut, m_sh.num_subsets());
+//
+//			m_sh.assign_subset( volOut, m_sh.num_subsets() );
+//			m_sh.assign_subset( oldVrtxOuter, m_sh.num_subsets() );
+//			m_sh.assign_subset( shiftVrtxOuter, m_sh.num_subsets() );
+//			m_sh.assign_subset( faceOuter,m_sh.num_subsets());
+//
+//			if( innerShiftVrtxFound )
+//				m_sh.assign_subset( innerShiftVrtxFound, m_sh.num_subsets() );
+//
+//			if( volFound )
+//				m_sh.assign_subset( volFound, m_sh.num_subsets());
+//
+//			if( paVolFound )
+//				m_sh.assign_subset( paVolFound, m_sh.num_subsets());
+//
+//			if( innerOldVrtxFound && ( innerOldVrtxFound != oldVrtxOuter ) )
+//				m_sh.assign_subset( innerOldVrtxFound, m_sh.num_subsets() );
+//
+//			if( innerShiftVrtxFound )
+//				m_sh.assign_subset( innerShiftVrtxFound, m_sh.num_subsets() );
+//
+//			return false;
+//		}
 
 //		UG_LOG("end out " << d_out << std::endl);
 		d_out++;
@@ -897,90 +923,46 @@ bool DiamondsEstablish3D::trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet(
 
 	Vertex * oldVrtx = oldVrtxOne;
 
-//	bool isAtEndingCrossingCleftVrtx = false;
-
-//	if( mvcOne.spuckHasOneEndingCrossingCleft() )
-//	{
-//		if( mvcTwo.spuckHasOneEndingCrossingCleft() )
-//		{
-//			isAtEndingCrossingCleftVrtx = true;
-//		}
-//		else
-//		{
-//			UG_LOG("one ECC the other not?" << std::endl );
-//			return false;
-//		}
-//	}
-
 	Vertex * shiftVrtxOne = oldAndShiftVrtxOne.second;
 	Vertex * shiftVrtxTwo = oldAndShiftVrtxTwo.second;
 
-	Volume * volOne;
-	Volume * volTwo;
+	Volume * volOneRelevant;
+	mvcOne.spuckRelevantFulldimElem( volOneRelevant );
 
-	mvcOne.spuckFulldimElem( volOne );
-	mvcTwo.spuckFulldimElem( volTwo );
+	Volume * volOneConnecting;
+	mvcOne.spuckConnectingFulldimElem( volOneConnecting );
+
+	Volume * volTwoRelevant;
+	mvcTwo.spuckRelevantFulldimElem( volTwoRelevant );
+
+	Volume * volTwoConnecting;
+	mvcTwo.spuckConnectingFulldimElem( volTwoConnecting );
 
 	if( shiftVrtxOne == shiftVrtxTwo )
 	{
 		UG_LOG("shift vertices coincide but should not " << std::endl);
 
-//		for( VolManifVrtxCombi & vmvc : m_vecVolManifVrtxCombiToShrink4Diams )
-//		{
-//			Volume * vol;
-//			Volume * paVol;
-//
-//			vmvc.spuckFulldimElem(vol);
-//			vmvc.spuckFulldimPartnerElem(paVol);
-//
-//			if( vol )
-//			{
-//				m_sh.assign_subset( vol, m_sh.num_subsets() );
-//			}
-//			else
-//			{
-//				UG_LOG("NO VOL BUT MAYBE NEED" << std::endl);
-//			}
-//
-//			if( paVol )
-//				m_sh.assign_subset( paVol, m_sh.num_subsets() );
-//		}
-
 		m_sh.assign_subset(shiftVrtxOne, m_sh.num_subsets());
 		m_sh.assign_subset(oldVrtx, m_sh.num_subsets());
+		m_sh.assign_subset(volOneRelevant, m_sh.num_subsets());
+		m_sh.assign_subset(volTwoRelevant, m_sh.num_subsets());
 		m_sh.assign_subset(connectingFace, m_sh.num_subsets());
-		m_sh.assign_subset(volOne, m_sh.num_subsets());
-		m_sh.assign_subset(volTwo, m_sh.num_subsets());
+
+		if( volOneRelevant != volOneConnecting )
+			m_sh.assign_subset( volOneConnecting , m_sh.num_subsets());
+
+		if( volTwoRelevant != volTwoConnecting )
+			m_sh.assign_subset( volTwoConnecting, m_sh.num_subsets() );
+
 		return false;
 	}
 
 
-	if( volOne == volTwo )
+	if( volOneRelevant == volTwoRelevant )
 	{
 		UG_LOG("volumes coincide but should not " << std::endl);
 		return false;
 	}
-
-	Volume * volOnePartner;
-	Volume * volTwoPartner;
-
-	mvcOne.spuckFulldimPartnerElem( volOnePartner );
-	mvcTwo.spuckFulldimPartnerElem( volTwoPartner );
-
-	// TODO FIXME KKKKKK Käse hier, man braucht beide Volumen dann!!!
-
-	if( volOnePartner && mvcOne.spuckHasOneEndingCrossingCleft() )
-	{
-//		volOne = volOnePartner;
-		useSomePartner = true;
-	}
-
-	if( volTwoPartner && mvcTwo.spuckHasOneEndingCrossingCleft() )
-	{
-//		volTwo = volTwoPartner;
-		useSomePartner = true;
-	}
-
 
 	Edge * edgeOne;
 	Edge * edgeTwo;
@@ -994,83 +976,64 @@ bool DiamondsEstablish3D::trafoVolFacVrtxCombiPair2FullLowDimManifQuintuplet(
 		return false;
 	}
 
-	VolumeElementTwin volElTwinOne( volOne, edgeOne, sudo, volOnePartner );
-	VolumeElementTwin volElTwinTwo( volTwo, edgeTwo, sudo, volTwoPartner );
-
-	if( ! volElTwinOne.setRelevantFulldimElem(m_grid))
-	{
-		UG_LOG("not possible to set first relevant fulldim elem " << std::endl);
-		return false;
-	}
-
-	if( ! volElTwinTwo.setRelevantFulldimElem(m_grid))
-	{
-		UG_LOG("not possible to set second relevant fulldim elem " << std::endl);
-		return false;
-	}
+	VolumeElementCombi volElTwinOne( volOneRelevant, volOneConnecting, edgeOne, sudo );
+	VolumeElementCombi volElTwinTwo( volTwoRelevant, volTwoConnecting, edgeTwo, sudo );
 
 	if( ! volElTwinOne.checkIntegrity() || ! volElTwinTwo.checkIntegrity() )
 	{
 		// TODO FIXME Paarvolumen Option einbauen, und zwar vorher, bevor es schief geht, bei ECC
 		UG_LOG("twins of vol edge not integer " << std::endl);
 
-		m_sh.assign_subset(volOne, m_sh.num_subsets());
-		m_sh.assign_subset(volTwo, m_sh.num_subsets());
+		m_sh.assign_subset(volOneRelevant, m_sh.num_subsets());
+		m_sh.assign_subset(volTwoRelevant, m_sh.num_subsets());
 		m_sh.assign_subset(edgeOne, m_sh.num_subsets());
 		m_sh.assign_subset(edgeTwo, m_sh.num_subsets());
+		m_sh.assign_subset( faceOne, m_sh.num_subsets());
+		m_sh.assign_subset( faceTwo, m_sh.num_subsets());
 
-
-		UG_LOG("Hat Partner " << useSomePartner << std::endl);
-
-		if( volOnePartner )
+		if( volOneRelevant != volOneConnecting )
 		{
 			UG_LOG("one has partner " << std::endl);
 
-			m_sh.assign_subset( volOnePartner, m_sh.num_subsets() );
+			m_sh.assign_subset( volOneConnecting, m_sh.num_subsets() );
 		}
 
-		if( volTwoPartner )
+		if( volTwoRelevant != volTwoConnecting )
 		{
 			UG_LOG("two has partner " << std::endl);
 
-			m_sh.assign_subset( volTwoPartner, m_sh.num_subsets() );
+			m_sh.assign_subset( volTwoConnecting, m_sh.num_subsets() );
 		}
 
 		return false;
 	}
 
-	std::pair<VolumeElementTwin,VolumeElementTwin> volElTwinPair( volElTwinOne, volElTwinTwo );
+	std::pair<VolumeElementCombi,VolumeElementCombi> volElTwinCombi( volElTwinOne, volElTwinTwo );
 
-	vef5 = VolumeElementFaceQuintuplet( volElTwinPair, connectingFace );
+	vef5 = VolumeElementFaceQuintuplet( volElTwinCombi, connectingFace );
 
-//	if( useSomePartner )
-//	{
-//		// KKKKKKKKKKK TODO FIXME irgendwie noch ein drittes Paar dazu.......
-//		// damit die Integrität wieder repariert wird dadurch......
-//	}
-
-//	if( ! vef5.checkIntegrity( ! useSomePartner ) )
-//	if( ! vef5.checkIntegrity( m_sh ) )
 	if( ! vef5.checkIntegrity() )
 	{
 		UG_LOG( "quitent not integer " << std::endl );
 
-		m_sh.assign_subset(volOne, m_sh.num_subsets());
-		m_sh.assign_subset(volTwo, m_sh.num_subsets());
+		m_sh.assign_subset(volOneRelevant, m_sh.num_subsets());
+		m_sh.assign_subset(volTwoRelevant, m_sh.num_subsets());
 		m_sh.assign_subset(edgeOne, m_sh.num_subsets());
 		m_sh.assign_subset(edgeTwo, m_sh.num_subsets());
 		m_sh.assign_subset(connectingFace, m_sh.num_subsets() );
 
-		if( volOnePartner )
+		if( volOneRelevant != volOneConnecting )
 		{
-			m_sh.assign_subset( volOnePartner, m_sh.num_subsets());
-			UG_LOG("Partner eins " << std::endl);
+			UG_LOG("one has partner " << std::endl);
+
+			m_sh.assign_subset( volOneConnecting, m_sh.num_subsets() );
 		}
 
-		if( volTwoPartner )
+		if( volTwoRelevant != volTwoConnecting )
 		{
-			UG_LOG("Partner zwei " << std::endl);
-			m_sh.assign_subset( volTwoPartner, m_sh.num_subsets());
+			UG_LOG("two has partner " << std::endl);
+
+			m_sh.assign_subset( volTwoConnecting, m_sh.num_subsets() );
 		}
 
 
@@ -1089,7 +1052,7 @@ bool DiamondsEstablish3D::establishElems2BeQuenched()
 
 	for( typename VecVolumeElementFaceQuintuplet::iterator itOuter = vvef5.begin();
 			      itOuter != vvef5.end();
-	   )
+	)
 	{
 		VolumeElementFaceQuintuplet vef5Outer = *itOuter;
 
@@ -1238,9 +1201,9 @@ void DiamondsEstablish3D::debugE2bQ(Elems2BQuenched & e2bq)
 				Vertex * vrtE1;
 				Vertex * vrtE2;
 
-				std::pair<VolumeElementTwin,VolumeElementTwin> pvv;
+				std::pair<VolumeElementCombi,VolumeElementCombi> pvv;
 
-				v.spuckPairFullLowDimTwin(pvv);
+				v.spuckPairFullLowDimCombi(pvv);
 
 				pvv.first.spuckRelevantFullDimElem(vol1);
 				pvv.second.spuckRelevantFullDimElem(vol2);
@@ -1697,11 +1660,11 @@ bool DiamondsEstablish3D::trafoQuintupleInfo2Attachments(VolumeElementFaceQuintu
 	m_attAccsVrtxIsShiftVrtx[vp.first] = true;
 	m_attAccsVrtxIsShiftVrtx[vp.second] = true;
 
-	PairVolumeEdgeTwin pvet;
-	vef5.spuckPairFullLowDimTwin(pvet);
+	PairVolumeEdgeCombi pvet;
+	vef5.spuckPairFullLowDimCombi(pvet);
 
-	VolumeEdgeTwin vetOne = pvet.first;
-	VolumeEdgeTwin vetTwo = pvet.second;
+	VolumeEdgeCombi vetOne = pvet.first;
+	VolumeEdgeCombi vetTwo = pvet.second;
 
 	Volume * volOne;
 	Volume * volTwo;
@@ -1895,11 +1858,11 @@ bool DiamondsEstablish3D::distributeInfosForShrinkingVols()
 
 			for( VolumeElementFaceQuintuplet & vef5 : vvef5 )
 			{
-				PairVolumeEdgeTwin pvet;
+				PairVolumeEdgeCombi pvet;
 
-				vef5.spuckPairFullLowDimTwin(pvet);
+				vef5.spuckPairFullLowDimCombi(pvet);
 
-				VolumeEdgeTwin vetOne, vetTwo;
+				VolumeEdgeCombi vetOne, vetTwo;
 
 				vetOne = pvet.first;
 				vetTwo = pvet.second;

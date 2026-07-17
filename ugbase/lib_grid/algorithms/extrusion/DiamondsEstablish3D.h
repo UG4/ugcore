@@ -64,7 +64,7 @@ private:
 
 	bool findRegions2BShrinked();
 
-	using VolumeElementTwin = FulldimLowdimTwin<Volume*, Edge*, IndexType>;
+	using VolumeElementCombi = FulldimLowdimCombi<Volume*, Edge*, IndexType>;
 
 	using VolumeElementFaceQuintuplet = FullLowDimManifQuintuplet<Volume*, Face*, Edge*, Vertex*, IndexType>;
 
@@ -165,8 +165,8 @@ private:
 
 	bool trafoQuintupleInfo2Attachments(VolumeElementFaceQuintuplet & vef5);
 
-	using VolumeEdgeTwin = FulldimLowdimTwin<Volume*,Edge*,IndexType>;
-	using PairVolumeEdgeTwin = std::pair<VolumeEdgeTwin, VolumeEdgeTwin>;
+	using VolumeEdgeCombi = FulldimLowdimCombi<Volume*,Edge*,IndexType>;
+	using PairVolumeEdgeCombi = std::pair<VolumeEdgeCombi, VolumeEdgeCombi>;
 
 	using AttVecInt = Attachment<std::vector<IndexType>>;
 

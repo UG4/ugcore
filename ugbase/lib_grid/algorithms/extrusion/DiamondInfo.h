@@ -128,9 +128,9 @@ public:
 	  m_connectingVolElm(nullptr)
 	{};
 
-	void spuckFulldimElem( FULLDIMELEM & vol ) { vol = m_volElm; }
+//	void spuckFulldimElem( FULLDIMELEM & vol ) { vol = m_volElm; }
 
-	void spuckFulldimPartnerElem( FULLDIMELEM & partVol ) { partVol = m_volPartnerElm; }
+//	void spuckFulldimPartnerElem( FULLDIMELEM & partVol ) { partVol = m_volPartnerElm; }
 
 	bool spuckRelevantFulldimElem( FULLDIMELEM & vol )
 	{
@@ -191,74 +191,41 @@ public:
 	>
 	bool checkIntegrity( Grid & grid )
 	{
-		if( ! m_relevantVolElm || ! m_connectingVolElm )
+		if( findLowDimElInFullDimEl( grid, m_volElm ) == 1 )
 		{
-			UG_LOG("relevant oder conn elem nicht bestimmt " << std::endl);
-			return false;
-		}
+			UG_LOG("main volume contains edge " << std::endl);
 
-		INDEXTYP edgeFound = 0;
-
-		FULLDIMELEM testElm = m_volElm;
-
-		if( m_volPartnerElm && m_hasOneEndingCrossingCleft )
-			testElm = m_volPartnerElm;
-
-//		for(size_t i_edge = 0; i_edge < m_volElm->num_edges(); ++i_edge)
-		for(size_t i_edge = 0; i_edge < testElm->num_edges(); ++i_edge)
-		{
-//			LOWDIMELM lowDimElm = grid.get_edge( m_volElm, i_edge );
-			LOWDIMELM lowDimElm = grid.get_edge( testElm, i_edge );
-
-			if(    EdgeContains(lowDimElm, m_oldAndshiftVrtx.first)
-				&& EdgeContains(lowDimElm, m_oldAndshiftVrtx.second )
-			   )
-			{
-				m_lowDimElm = lowDimElm;
-				edgeFound++;
-			}
-		}
-
-		if( edgeFound != 1)
-		{
-			UG_LOG("edge number found strange " << edgeFound << std::endl);
-			return false;
-		}
-
-		return true;
-	}
-
-	bool setRelevantFulldimElem( Grid & grid )
-	{
-		if( ! m_volElm )
-		{
-			UG_LOG("cannot test and set for empty vol" << std::endl);
-			return false;
-		}
-
-		m_connectingVolElm = m_volElm;
-
-		if( edgeIsInVolume<INDEXTYP>( m_volElm, m_lowDimElm, grid ) )
-		{
 			m_relevantVolElm = m_volElm;
-		}
 
-		if( ! m_volPartnerElm )
-		{
-			UG_LOG("ecke nicht in haupt aber auch nicht neben " << std::endl);
-			return false;
-		}
+			m_connectingVolElm = m_volElm;
 
-		if( edgeIsInVolume<INDEXTYP>( m_volPartnerElm, m_lowDimElm, grid ) )
+			if( m_volPartnerElm && m_hasOneEndingCrossingCleft )
+			{
+				m_connectingVolElm = m_volPartnerElm;
+			}
+
+			return true;
+		}
+		else if( m_volPartnerElm && m_hasOneEndingCrossingCleft )
 		{
-			m_relevantVolElm = m_volPartnerElm;
+			UG_LOG("vielleicht hat der Partner die Ecke" << std::endl);
+
+			if( findLowDimElInFullDimEl( grid, m_volPartnerElm ) == 1 )
+			{
+				m_relevantVolElm = m_volPartnerElm;
+
+				m_connectingVolElm = m_volElm;
+			}
+
 			return true;
 		}
 
-		UG_LOG("schon wieder keine Zuordnung " << std::endl);
+		UG_LOG("weder das Element noch der Partner enthalten die Kante die gesucht wird" << std::endl);
 
 		return false;
 	}
+
+
 
 private:
 
@@ -267,11 +234,37 @@ private:
 	VrtxPair m_oldAndshiftVrtx;
 	INDEXTYP m_sudo;
 	LOWDIMELM m_lowDimElm;
-	bool m_hasOneEndingCrossingCleft;
+	bool m_hasOneEndingCrossingCleft; // bedeutet mindestens eine!
 	FULLDIMELEM m_volPartnerElm;
-	FULLDIMELEM m_relevantVolElm;
-	FULLDIMELEM m_connectingVolElm;
+	FULLDIMELEM m_relevantVolElm; // das relevante Element enthält die Edge
+	FULLDIMELEM m_connectingVolElm; // das verbindende Element enthält das Face
 
+	template
+	<
+	typename = std::enable_if<std::is_same<Volume*,FULLDIMELEM>::value>,
+	typename = std::enable_if<std::is_same<Edge*,LOWDIMELM>::value>
+	>
+	INDEXTYP findLowDimElInFullDimEl( Grid & grid, FULLDIMELEM const & testElem )
+	{
+		INDEXTYP edgeFound = 0;
+
+		for(size_t i_edge = 0; i_edge < testElem->num_edges(); ++i_edge)
+		{
+			LOWDIMELM lowDimElm = grid.get_edge( testElem, i_edge );
+
+			if(    EdgeContains(lowDimElm, m_oldAndshiftVrtx.first)
+				&& EdgeContains(lowDimElm, m_oldAndshiftVrtx.second )
+			  )
+			{
+				m_lowDimElm = lowDimElm;
+				edgeFound++;
+			}
+		}
+
+		UG_LOG("edge found " << edgeFound << std::endl);
+
+		return edgeFound;
+	}
 
 };
 
@@ -286,103 +279,36 @@ typename INDEXTYP,
 typename = std::enable_if< std::is_pointer<FULLDIMELEM>::value>,
 typename = std::enable_if< std::is_pointer<LOWDIMELEM>::value>
 >
-class FulldimLowdimTwin
+class FulldimLowdimCombi
 {
 public:
 
 	// TODO FIXME Paarvolumen dazu machen, das bei ECC dabei ist ggf
 
-	FulldimLowdimTwin( FULLDIMELEM const & fulldimElem,
-					   LOWDIMELEM const & lowdimElem,
-					   INDEXTYP sudo,
-					   FULLDIMELEM const & fulldimElemPartner = nullptr
-				     )
-	: m_fullDimElem(fulldimElem), m_lowDimElem(lowdimElem), m_sudo(sudo),
-	  m_fullDimElemPartner(fulldimElemPartner),
-	  m_relevantFullDimElem(nullptr), m_connectingFullDimElem(nullptr)
+	FulldimLowdimCombi( FULLDIMELEM const & fulldimElemRelevant,
+						FULLDIMELEM const & fulldimElemConnecting, // without Ending crossing clefts equals the relevant one
+						LOWDIMELEM const & lowdimElem,
+						INDEXTYP sudo
+				      )
+	: m_relevantFullDimElem(fulldimElemRelevant),
+	  m_connectingFullDimElem(fulldimElemConnecting),
+	  m_lowDimElem(lowdimElem), m_sudo(sudo)
 	{}
 
-	FulldimLowdimTwin()
-	: m_fullDimElem(nullptr), m_lowDimElem(nullptr), m_sudo(0),
-	  m_fullDimElemPartner(nullptr),
-	  m_relevantFullDimElem(nullptr), m_connectingFullDimElem(nullptr)
+	FulldimLowdimCombi()
+	: m_relevantFullDimElem(nullptr),
+	  m_connectingFullDimElem(nullptr),
+	  m_lowDimElem(nullptr), m_sudo(0)
 	{}
 
-	template
-	<
-		typename = std::enable_if<std::is_same<Volume*,FULLDIMELEM>::value>,
-		typename = std::enable_if<std::is_same<Edge*,LOWDIMELEM>::value>
-	>
-	bool setRelevantFulldimElem( Grid & grid )
+	void spuckRelevantFullDimElem( FULLDIMELEM & fulldimElem )
 	{
-		if( ! m_fullDimElem )
-		{
-			UG_LOG("cannot test an empty volume " << std::endl);
-			return false;
-		}
-
-		m_connectingFullDimElem = m_fullDimElem;
-
-		if( edgeIsInVolume<INDEXTYP>( m_fullDimElem, m_lowDimElem, grid ) )
-		{
-			m_relevantFullDimElem = m_fullDimElem;
-
-			return true;
-		}
-
-		if( ! m_fullDimElemPartner )
-		{
-			UG_LOG("edge not in main elem but also no partner " << std::endl);
-			return false;
-		}
-
-		if( edgeIsInVolume<INDEXTYP>( m_fullDimElemPartner, m_lowDimElem, grid ) )
-		{
-			m_relevantFullDimElem = m_fullDimElemPartner;
-
-			return true;
-		}
-
-		UG_LOG("somehow no Zuordnung volume edge " << std::endl);
-
-		return false;
+		fulldimElem = m_relevantFullDimElem;
 	}
 
-
-	void spuckFullDimElem( FULLDIMELEM & fulldimElem )
+	void spuckConnectingFullDimElem( FULLDIMELEM & fulldimElem )
 	{
-		fulldimElem = m_fullDimElem;
-	}
-
-	void spuckFullDimElemPartner( FULLDIMELEM & fulldimElemPartner )
-	{
-		fulldimElemPartner = m_fullDimElemPartner;
-	}
-
-	bool spuckRelevantFullDimElem( FULLDIMELEM & relevantFulldimElem )
-	{
-		if( ! m_relevantFullDimElem )
-		{
-			UG_LOG("relevant element not determined so far " << std::endl);
-			return false;
-		}
-
-		relevantFulldimElem = m_relevantFullDimElem;
-
-		return true;
-	}
-
-	bool spuckConnectingFullDimElem( FULLDIMELEM & connectingFulldimElem )
-	{
-		if( ! m_connectingFullDimElem )
-		{
-			UG_LOG("connecting element not determined so far " << std::endl);
-			return false;
-		}
-
-		connectingFulldimElem = m_connectingFullDimElem;
-
-		return true;
+		fulldimElem = m_connectingFullDimElem;
 	}
 
 
@@ -393,26 +319,29 @@ public:
 
 	INDEXTYP spuckSudo() { return m_sudo; }
 
-	bool changeTheElems( FULLDIMELEM const & fulldimElem,
-						 LOWDIMELEM const & lowdimElem,
-						 INDEXTYP sudo,
-						 FULLDIMELEM const & fullDimElemPartner = nullptr )
-	{
-		m_fullDimElem = fulldimElem;
-		m_lowDimElem = lowdimElem;
-		m_sudo = sudo;
-
-		if( fullDimElemPartner )
-			m_fullDimElemPartner = fullDimElemPartner;
-
-		if( ! setRelevantFulldimElem() )
-		{
-			UG_LOG("Change but no relevant edge " << std::endl);
-			return false;
-		}
-
-		return true;
-	}
+//	bool changeTheElems( Grid & grid,
+//						 FULLDIMELEM const & fulldimElem,
+//						 LOWDIMELEM const & lowdimElem,
+//						 INDEXTYP sudo,
+//						 FULLDIMELEM const & fullDimElemPartner = nullptr )
+//	{
+//		m_fullDimElem = fulldimElem;
+//		m_lowDimElem = lowdimElem;
+//		m_sudo = sudo;
+//
+//		if( fullDimElemPartner )
+//			m_fullDimElemPartner = fullDimElemPartner;
+//
+//		if( ! checkIntegrity())
+//
+////		if( ! setRelevantFulldimElem() )
+////		{
+////			UG_LOG("Change but no relevant edge " << std::endl);
+////			return false;
+////		}
+//
+//		return true;
+//	}
 
 	// template check if volume and edge valid......
 	template
@@ -423,27 +352,9 @@ public:
 	bool checkIntegrity()
 	{
 		// TODO FIXME den Partner checken
-		if( ! VolumeContains(m_fullDimElem, m_lowDimElem))
+		if( ! VolumeContains(m_relevantFullDimElem, m_lowDimElem))
 		{
 			UG_LOG("Volume does not contain edge for diams " << std::endl);
-
-			if( m_fullDimElemPartner )
-			{
-				UG_LOG("einen Partner hat es schonmal " << std::endl);
-
-				if( ! VolumeContains(m_fullDimElemPartner, m_lowDimElem))
-				{
-					UG_LOG("aber auch der hat die Ecke nicht" << std::endl);
-					return false;
-				}
-
-				UG_LOG("Partner doch gefunden" << std::endl);
-			}
-			else
-			{
-				UG_LOG("aber ohne Partner" << std::endl);
-				return false;
-			}
 		}
 
 		return true;
@@ -451,33 +362,10 @@ public:
 
 private:
 
-	FULLDIMELEM m_fullDimElem;
-	LOWDIMELEM m_lowDimElem;
-	INDEXTYP m_sudo;
-	FULLDIMELEM m_fullDimElemPartner;
 	FULLDIMELEM m_relevantFullDimElem;
 	FULLDIMELEM m_connectingFullDimElem;
-
-
-//	template
-//	<
-//		typename = std::enable_if<std::is_same<Volume*,FULLDIMELEM>::value>,
-//		typename = std::enable_if<std::is_same<Edge*,LOWDIMELEM>::value>
-//	>
-//	bool edgeIsInVolume( FULLDIMELEM & vol, LOWDIMELEM & edg, Grid & grid )
-//	{
-//		for( INDEXTYP iE = 0; iE < vol->num_edges(); iE++ )
-//		{
-//			LOWDIMELEM testEdg = grid.get_edge( vol, iE );
-//
-//			if( testEdg == edg )
-//				return true;
-//		}
-//
-//		UG_LOG("Die relevante Ecke unauffindbar " << std::endl);
-//
-//		return false;
-//	}
+	LOWDIMELEM m_lowDimElem;
+	INDEXTYP m_sudo;
 
 };
 
@@ -525,8 +413,8 @@ class FullLowDimManifQuintuplet
 {
 public:
 
-	using FullLowDimTwin = FulldimLowdimTwin<FULLDIMELEM,LOWDIMELEM,INDEXTYP>;
-	using PairFullLowDimTwin = std::pair<FullLowDimTwin,FullLowDimTwin>;
+	using FullLowDimCombi = FulldimLowdimCombi<FULLDIMELEM,LOWDIMELEM,INDEXTYP>;
+	using PairFullLowDimCombi = std::pair<FullLowDimCombi,FullLowDimCombi>;
 	using PairVrtcs = std::pair<VERTEXTYP,VERTEXTYP>;
 	using PairLowDimElem = std::pair<LOWDIMELEM,LOWDIMELEM>;
 
@@ -534,8 +422,8 @@ public:
 	// dann durch Vektor
 	// oder vielleicht immer Vektor aber muss 2 oder 3 Länge sein
 
-	FullLowDimManifQuintuplet( PairFullLowDimTwin const & fullLowPr, MANIFELEM const & manif )
-	: m_pairFullLowDimTwin(fullLowPr),
+	FullLowDimManifQuintuplet( PairFullLowDimCombi const & fullLowPr, MANIFELEM const & manif )
+	: m_pairFullLowDimCombi(fullLowPr),
 	  m_manifElem(manif),
 	  m_centerVrtx(nullptr),
 	  m_shiftVrtcs(PairVrtcs()),
@@ -544,7 +432,7 @@ public:
 	{};
 
 	FullLowDimManifQuintuplet()
-	: m_pairFullLowDimTwin(PairFullLowDimTwin()),
+	: m_pairFullLowDimCombi(PairFullLowDimCombi()),
 	  m_manifElem(nullptr),
 	  m_centerVrtx(nullptr),
 	  m_shiftVrtcs(PairVrtcs()),
@@ -552,31 +440,20 @@ public:
 	  m_sudo(0)
 	{};
 
-	// TODO FIXME das checkAlsoFace wieder abschaffen, muss immer richtig sein
-	// oder lassen aber dann besonderen Umgang für Fall, dass Triplett ist
 	template
 	<
 		typename = std::enable_if<std::is_same<Volume*,FULLDIMELEM>::value>,
 		typename = std::enable_if<std::is_same<Face*,MANIFELEM>::value>,
 		typename = std::enable_if<std::is_same<Edge*,LOWDIMELEM>::value>
 	>
-//	bool checkIntegrity( bool checkAlsoFace = true )
 	bool checkIntegrity()
-//	bool checkIntegrity( SubsetHandler & sh )
 	{
-		// TODO FIXME das muss den Partner kennen, damit es gründlich testen kann
-		// WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
 		if( ! checkIntegrityVols() )
 		{
 			UG_LOG("Vols not integer " << std::endl);
 			return false;
 		}
 
-		// TODO FIXME das muss auch wieder gecheckt werden, aber intelligenter
-//		if( checkAlsoFace )
-//		if() // TODO FIXME test if partner available in one or both volumes
-//		{
-//		if( ! checkIntegrityFaceInBothVols( sh ) )
 		if( ! checkIntegrityFaceInBothVols() )
 		{
 			UG_LOG("A face in the dark " << std::endl);
@@ -609,9 +486,9 @@ public:
 		pv = m_shiftVrtcs;
 	}
 
-	void spuckPairFullLowDimTwin( PairFullLowDimTwin & pfldt )
+	void spuckPairFullLowDimCombi( PairFullLowDimCombi & pfldt )
 	{
-		pfldt = m_pairFullLowDimTwin;
+		pfldt = m_pairFullLowDimCombi;
 	}
 
 	void spuckManifElem( MANIFELEM & m )
@@ -619,31 +496,14 @@ public:
 		m = m_manifElem;
 	}
 
-//	bool swapEntries( SubsetHandler & sh )
 	bool swapEntries()
 	{
-		std::swap( m_pairFullLowDimTwin.first, m_pairFullLowDimTwin.second );
+		std::swap( m_pairFullLowDimCombi.first, m_pairFullLowDimCombi.second );
 
 		VERTEXTYP vrtOne = m_shiftVrtcs.first;
 		VERTEXTYP vrtTwo = m_shiftVrtcs.second;
 
 		std::swap( m_shiftVrtcs.first, m_shiftVrtcs.second );
-
-//		FullLowDimTwin fldOne = m_pairFullLowDimTwin.first;
-//		FullLowDimTwin fldTwo = m_pairFullLowDimTwin.second;
-
-
-//		if( fldOne != m_pairFullLowDimTwin.second || fldTwo != m_pairFullLowDimTwin.first )
-//		{
-//			UG_LOG("swappign not worked " << std::endl);
-//			return false;
-//		}
-
-//		if( fldOne != m_pairFullLowDimTwin.second || fldTwo != m_pairFullLowDimTwin.first )
-//		{
-//			UG_LOG("swappign not worked " << std::endl);
-//			return false;
-//		}
 
 		if( vrtOne != m_shiftVrtcs.second || vrtTwo != m_shiftVrtcs.first )
 		{
@@ -651,7 +511,6 @@ public:
 			return false;
 		}
 
-//		if( ! checkIntegrity( sh ) )
 		if( ! checkIntegrity() )
 		{
 			UG_LOG("not integer any more after swap entries" << std::endl);
@@ -670,7 +529,7 @@ public:
 
 private:
 
-	PairFullLowDimTwin m_pairFullLowDimTwin;
+	PairFullLowDimCombi m_pairFullLowDimCombi;
 	MANIFELEM m_manifElem;
 	VERTEXTYP m_centerVrtx;
 	PairVrtcs m_shiftVrtcs;
@@ -679,7 +538,7 @@ private:
 
 	bool checkIntegrityVols()
 	{
-		if( ! m_pairFullLowDimTwin.first.checkIntegrity() || ! m_pairFullLowDimTwin.second.checkIntegrity() )
+		if( ! m_pairFullLowDimCombi.first.checkIntegrity() || ! m_pairFullLowDimCombi.second.checkIntegrity() )
 		{
 			UG_LOG("Vol integrity not passed " << std::endl);
 			return false;
@@ -695,8 +554,7 @@ private:
 		typename = std::enable_if<std::is_same<Face*,MANIFELEM>::value>,
 		typename = std::enable_if<std::is_same<Edge*,LOWDIMELEM>::value>
 	>
-	bool checkIntegrityFaceInVol( FullLowDimTwin & fldt )
-//	bool checkIntegrityFaceInVol( FullLowDimTwin & fldt, SubsetHandler & sh )
+	bool checkIntegrityFaceInVol( FullLowDimCombi & fldt )
 	{
 		// hier muss getestet werden, ob es einen Partner gibt, und wenn ja,
 		// dann muss getestet werden, ob er das face enthält!
@@ -716,47 +574,6 @@ private:
 	}
 
 
-//		FULLDIMELEM fudielPartner = nullptr;
-//
-//		fldt.spuckFullDimElemPartner( fudielPartner );
-//
-//		FULLDIMELEM fudiel;
-//
-//		fldt.spuckFullDimElem(fudiel);
-//
-//		// check who contains the edge, the partner volume or the volume itself
-//		// that one which contains the edge has to be tested, and NOT the other one
-//		// in case of no partner, it is simple
-//
-//		LOWDIMELEM lodiEl;
-//		fldt.spuckLowDimElem(lodiEl);
-//
-//
-//		if( ! fudielPartner || VolumeContains( fudiel, lodiEl ) )
-//		{
-//			if( ! VolumeContains(fudiel, m_manifElem ) )
-//			{
-//				UG_LOG("Face not in Vol " << std::endl);
-//				return false;
-//			}
-//		}
-//		else
-//		{
-//			if( ! VolumeContains(fudielPartner, m_manifElem || ! VolumeContains( fudielPartner, lodiEl ) ) )
-//			{
-//				UG_LOG("Face Partner is not in Vol " << std::endl);
-//
-//				sh.assign_subset( fudielPartner, sh.num_subsets() );
-//				sh.assign_subset( fudiel, sh.num_subsets() );
-//				sh.assign_subset( m_manifElem, sh.num_subsets() );
-//
-//				return false;
-//			}
-//		}
-//
-//		return true;
-
-
 
 	template
 	<
@@ -765,18 +582,9 @@ private:
 		typename = std::enable_if<std::is_same<Edge*,LOWDIMELEM>::value>
 	>
 	bool checkIntegrityFaceInBothVols()
-//	bool checkIntegrityFaceInBothVols( SubsetHandler & sh )
 	{
-//		FULLDIMELEM firstV, secondV;
-//		m_pairFullLowDimTwin.first.spuckFullDimElem(firstV);
-//		m_pairFullLowDimTwin.second.spuckFullDimElem(secondV);
-
-//		if( ! checkIntegrityFaceInVol( firstV ) || ! checkIntegrityFaceInVol( secondV )
-//		if(    ! checkIntegrityFaceInVol( m_pairFullLowDimTwin.first, sh)
-//			|| ! checkIntegrityFaceInVol( m_pairFullLowDimTwin.second, sh )
-//		  )
-		if(    ! checkIntegrityFaceInVol( m_pairFullLowDimTwin.first )
-			|| ! checkIntegrityFaceInVol( m_pairFullLowDimTwin.second )
+		if(    ! checkIntegrityFaceInVol( m_pairFullLowDimCombi.first )
+			|| ! checkIntegrityFaceInVol( m_pairFullLowDimCombi.second )
 		  )
 		{
 			UG_LOG("face not in one vol at least " << std::endl);
@@ -798,10 +606,8 @@ private:
 		Edge * edgeOne;
 		Edge * edgeTwo;
 
-		m_pairFullLowDimTwin.first.spuckLowDimElem(edgeOne);
-		m_pairFullLowDimTwin.second.spuckLowDimElem(edgeTwo);
-		//		edgeOne = m_pairFullLowDimTwin.first.spuckLowDimElem();
-		//		edgeTwo = m_pairFullLowDimTwin.first.spuckLowDimElem();
+		m_pairFullLowDimCombi.first.spuckLowDimElem(edgeOne);
+		m_pairFullLowDimCombi.second.spuckLowDimElem(edgeTwo);
 
 		m_pairLowDimElem = PairLowDimElem( edgeOne, edgeTwo );
 
@@ -900,8 +706,8 @@ private:
 
 	bool figureOutSudo()
 	{
-		int sudoFirst = m_pairFullLowDimTwin.first.spuckSudo();
-		int sudoSecond = m_pairFullLowDimTwin.second.spuckSudo();
+		int sudoFirst = m_pairFullLowDimCombi.first.spuckSudo();
+		int sudoSecond = m_pairFullLowDimCombi.second.spuckSudo();
 
 		if( sudoFirst != sudoSecond )
 		{
