@@ -595,6 +595,25 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 		{
 			UG_LOG("no partner found " << std::endl);
 
+			for( VolManifVrtxCombi & vmvc : m_vecVolManifVrtxCombiToShrink4Diams )
+			{
+				//if( vmvc.spuckHasOneEndingCrossingCleft() )
+				{
+					Volume * volRel;
+					Volume * volConn;
+
+					vmvc.spuckRelevantFulldimElem(volRel);
+					vmvc.spuckConnectingFulldimElem(volConn);
+
+					m_sh.assign_subset( volRel, m_sh.num_subsets() );
+					m_sh.assign_subset( volConn, m_sh.num_subsets());
+
+					if( volRel != volConn )
+						m_sh.assign_subset( volConn, m_sh.num_subsets() );
+				}
+			}
+
+
 			Volume * volOutRel;
 
 			outer.spuckRelevantFulldimElem( volOutRel);
@@ -603,10 +622,10 @@ bool DiamondsEstablish3D::findRegions2BShrinked()
 
 			outer.spuckConnectingFulldimElem( volOutConn );
 
+			m_sh.assign_subset( faceOuter, m_sh.num_subsets());
 			m_sh.assign_subset( volOutRel, m_sh.num_subsets() );
 			m_sh.assign_subset( oldVrtxOuter, m_sh.num_subsets() );
 			m_sh.assign_subset( shiftVrtxOuter, m_sh.num_subsets() );
-			m_sh.assign_subset( faceOuter, m_sh.num_subsets());
 
 			if( volOutRel != volOutConn )
 				m_sh.assign_subset( volOutConn, m_sh.num_subsets() );

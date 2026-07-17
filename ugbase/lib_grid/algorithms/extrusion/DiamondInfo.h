@@ -261,7 +261,7 @@ private:
 			}
 		}
 
-		UG_LOG("edge found " << edgeFound << std::endl);
+//		UG_LOG("edge found " << edgeFound << std::endl);
 
 		return edgeFound;
 	}

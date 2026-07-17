@@ -8122,8 +8122,18 @@ bool ArteExpandFracs3D::createNewElements()
 
 						bool containsFractCrossEdge = false;
 
+//						bool containsFractManifCutting = false;
+
 						for( EndingCrossingFractureSegmentInfo & ecfsi : m_vecEndCrossFractSegmInfo )
 						{
+							// TODO FIXME Unklar ob das wirklich weg soll!!! UUUUUUUUUUUUUUUUUUUUUUUUUUUUUu
+//							Face * const & facNeighbour = ecfsi.spuckEndingFractManifCutting();
+//
+//							if( facNeighbour == tFace )
+//							{
+//								containsFractCrossEdge = true;
+//							}
+
 							std::vector<Face*> const & closedNotNeighbr = ecfsi.spuckVecClosedFracManifElNoNeighbr();
 
 							for( Face * fac : closedNotNeighbr )
@@ -9878,6 +9888,7 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 
 						std::vector<Edge*> edgesTFac;
 
+						// fragwürdig, ob dieser bool nach seiner Berechnung Verwendung findet, vielleicht obsolet
 						bool tFacConnectsTwoFracsAndTouchesECC = false;
 
 						CollectEdges( edgesTFac, m_grid, tFace );
@@ -10031,6 +10042,7 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 								if( ! faceIsEndingCleftCrossFace )
 								{
 									UG_LOG("Widerspruch ending but not ending ECC" << std::endl);
+									return false;
 								}
 
 								if( iv0 == indBasVrtx )
@@ -10337,6 +10349,39 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 
 								if( closedNeighbrs.first == tFace || closedNeighbrs.second == tFace )
 								{
+									Face * closdNeighFac = nullptr;
+
+									if(  closedNeighbrs.first == tFace )
+									{
+										closdNeighFac = closedNeighbrs.first;
+									}
+									else if(  closedNeighbrs.second == tFace )
+									{
+										closdNeighFac = closedNeighbrs.second;
+									}
+									else
+									{
+										UG_LOG("no one of the neighbours t Fac " << std::endl);
+										return false;
+									}
+
+									// TODO FIXME die Eckensammlung kommt nochmal vor, in Funktion auslagern!
+
+									std::vector<Edge*> facEdges;
+
+									CollectEdges( facEdges, m_grid, closdNeighFac );
+
+									IndexType d_anzahlEcken = facEdges.size();
+
+									for( auto const & edg : facEdges )
+									{
+										if( ( m_aaMarkEdgeVFP[edg].getSudoList() ).size() == 2 )
+										{
+											containsFractCrossEdge = true;
+											UG_LOG("das gesuchte gibt es " << std::endl);
+										}
+									}
+
 									if( iv0 == indBasVrtx )
 									{
 										if( iv1 == indSecondVrtx )
@@ -10841,7 +10886,6 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 
 								for( Face * fac : closedNotNeighbr )
 								{
-
 									if( fac == tFace )
 									{
 										closedButNotDiamRelevant = true;
@@ -11252,13 +11296,19 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 //									m_sh.assign_subset(expVol, m_sh.num_subsets());
 
 								// TODO FIXME vielleicht muss hier noch das expVolTwo als replacement dazu, oder unten irgendwo?
-								if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVol, face2Remember4Diam, newSubs ) )
+								if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVol, face2Remember4Diam, newSubs, containsFractCrossEdge, expVolTwo ) )
 								{
 									UG_LOG("adding exp vol for ecc did not work  " << std::endl);
 									return false;
 								}
 
-								md_vecExpVols.push_back( expVol );
+								if( containsFractCrossEdge)
+								{
+									md_vecExpVols.push_back( expVol );
+
+									if( expVolTwo )
+										md_vecPairVols.push_back( expVolTwo );
+								}
 							}
 //							else
 //							{
@@ -11332,36 +11382,42 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 							if(  closedButNotDiamRelevant )
 							{
 
-								if( false ) // vielleicht doch nicht false
+//								if( false ) // vielleicht doch nicht false
+//								{
+//									if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVolTwo, tFace, newSubs ) )
+//									{
+//										UG_LOG("adding exp vol for exp vol Two exepctionally did not work  " << std::endl);
+//										return false;
+//									}
+//								}
+
+								// TODO FIXME ACHTUNG das muss wieder hin AAAAAAAAAAAAAAAAAAAAAa
+//								if( expVol && containsFractCrossEdge )
+								//{
+								if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVolTwo, tFace, newSubs, containsFractCrossEdge, expVol ) )
 								{
-									if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVolTwo, tFace, newSubs ) )
-									{
-										UG_LOG("adding exp vol for exp vol Two exepctionally did not work  " << std::endl);
-										return false;
-									}
+									UG_LOG("adding exp vol for exp vol Two exepctionally did not work combi " << std::endl);
+									return false;
 								}
 
-								if( expVol && containsFractCrossEdge )
+								if( containsFractCrossEdge )
 								{
-									if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVolTwo, tFace, newSubs, containsFractCrossEdge, expVol ) )
-									{
-										UG_LOG("adding exp vol for exp vol Two exepctionally did not work combi " << std::endl);
-										return false;
-									}
+									if( expVol )
+										md_vecPairVols.push_back( expVol );
 
-									md_vecPairVols.push_back( expVol );
+									md_vecExpVolsTwo.push_back( expVolTwo );
 								}
-								else
-								{
-									if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVolTwo, tFace, newSubs ) )
-									{
-										UG_LOG("adding exp vol for exp vol Two exepctionally did not work  " << std::endl);
-										return false;
-									}
+								//}
+//								else
+//								{
+//									if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVolTwo, tFace, newSubs ) )
+//									{
+//										UG_LOG("adding exp vol for exp vol Two exepctionally did not work  " << std::endl);
+//										return false;
+//									}
+//
+//								}
 
-								}
-
-								md_vecExpVolsTwo.push_back( expVolTwo );
 
 							}
 
@@ -11435,6 +11491,8 @@ bool ArteExpandFracs3D::addNewVol2Shrink4Diams(std::vector<size_t> const & locVr
 		// TODO FIXME hier ist der aktuell wichtigste Punkt WWWWWWWWWWWWWWWWWWWWWWWWWWWw
 		//if( ! vrtxAtEndingCrossingCleft || addAlso4ECC )
 //		if( ! vrtxAtEndingCrossingCleft )
+//		if( ! vrtxAtEndingCrossingCleft || ( addAlso4ECC && vrtxAtEndingCrossingCleft ) )
+//		if( ! vrtxAtEndingCrossingCleft ||  addAlso4ECC )
 		if( ! vrtxAtEndingCrossingCleft || ( addAlso4ECC && numSegmentsAtEndingCrossingCleft == 3 && vrtxAtEndingCrossingCleft ) )
 		{
 			//		for( IndexType i = 0; i < maxVolVrtxNum; i++ )
