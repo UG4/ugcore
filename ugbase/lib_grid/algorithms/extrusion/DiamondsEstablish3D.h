@@ -186,7 +186,7 @@ private:
 
 	bool teachMidVrtx2Vol( Volume * const & vol, Vertex * const & origVrtx, Vertex * const & midVrtx );
 
-	bool shrinkVolumes();
+	bool shrinkVolumesAndProduceMajorDiamonds();
 
 	bool establishNewVertex( Vertex * const & shiVrtxOne, Vertex * const & shiVrtxTwo, Vertex * & midVrtx );
 

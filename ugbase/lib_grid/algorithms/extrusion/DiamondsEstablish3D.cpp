@@ -269,7 +269,7 @@ bool DiamondsEstablish3D::createTheDiamonds( bool diamondsOnlyPreform )
 
 	UG_LOG("shrink volumes " << std::endl);
 
-	if( ! shrinkVolumes())
+	if( ! shrinkVolumesAndProduceMajorDiamonds())
 	{
 		UG_LOG("shrinken schief gegangen " << std::endl);
 		return false;
@@ -1685,25 +1685,41 @@ bool DiamondsEstablish3D::trafoQuintupleInfo2Attachments(VolumeElementFaceQuintu
 	VolumeEdgeCombi vetOne = pvet.first;
 	VolumeEdgeCombi vetTwo = pvet.second;
 
-	Volume * volOne;
-	Volume * volTwo;
+	Volume * volOneRelevant;
+	Volume * volTwoRelevant;
+	Volume * volOneConnect;
+	Volume * volTwoConnect;
 	Edge * edgOne;
 	Edge * edgTwo;
 
-	vetOne.spuckRelevantFullDimElem(volOne);
+	vetOne.spuckRelevantFullDimElem(volOneRelevant);
+	vetOne.spuckConnectingFullDimElem(volOneConnect);
 	vetOne.spuckLowDimElem(edgOne);
 
-	vetTwo.spuckRelevantFullDimElem(volTwo);
+	vetTwo.spuckRelevantFullDimElem(volTwoRelevant);
+	vetTwo.spuckConnectingFullDimElem(volTwoConnect);
 	vetTwo.spuckLowDimElem(edgTwo);
 
-	m_attAccsVolGetsShrinked[volOne] = true;
-	m_attAccsVolGetsShrinked[volTwo] = true;
+	m_attAccsVolGetsShrinked[volOneRelevant] = true;
+	m_attAccsVolGetsShrinked[volTwoRelevant] = true;
+
+	if( volOneConnect != volOneRelevant )
+		m_attAccsVolGetsShrinked[volOneConnect] = true;
+
+	if( volTwoConnect != volTwoRelevant)
+		m_attAccsVolGetsShrinked[volTwoConnect] = true;
 
 	m_attAccsEdgeIsShiftEdge[edgOne] = true;
 	m_attAccsEdgeIsShiftEdge[edgTwo] = true;
 
-	m_sel.select(volOne);
-	m_sel.select(volTwo);
+	m_sel.select(volOneRelevant);
+	m_sel.select(volTwoRelevant);
+
+	if( volOneConnect != volOneRelevant )
+		m_sel.select(volOneConnect);
+
+	if( volTwoConnect != volTwoRelevant )
+		m_sel.select(volTwoConnect);
 
 	m_sel.select(edgOne);
 	m_sel.select(edgTwo);
@@ -1886,20 +1902,47 @@ bool DiamondsEstablish3D::distributeInfosForShrinkingVols()
 				vetOne = pvet.first;
 				vetTwo = pvet.second;
 
-				Volume * volOne;
-				Volume * volTwo;
+				Volume * volOneRelevant;
+				Volume * volTwoRelevant;
 
-				vetOne.spuckRelevantFullDimElem(volOne);
-				vetTwo.spuckRelevantFullDimElem(volTwo);
+				vetOne.spuckRelevantFullDimElem(volOneRelevant);
+				vetTwo.spuckRelevantFullDimElem(volTwoRelevant);
 
 //				m_sh.assign_subset(volOne, m_sh.num_subsets());
 //				m_sh.assign_subset(volTwo, m_sh.num_subsets());
 
-				if( !teachMidVrtx2Vol(volOne, centerVrtx, newMidVrtx) || ! teachMidVrtx2Vol(volTwo,centerVrtx,newMidVrtx) )
+				if( !teachMidVrtx2Vol(volOneRelevant, centerVrtx, newMidVrtx) || ! teachMidVrtx2Vol(volTwoRelevant,centerVrtx,newMidVrtx) )
 				{
 					UG_LOG("not taughtable" << std::endl);
 					return false;
 				}
+
+				Volume * volOneConnect;
+				Volume * volTwoConnect;
+
+				vetOne.spuckConnectingFullDimElem( volOneConnect );
+				vetTwo.spuckConnectingFullDimElem( volTwoConnect );
+
+				if( volOneConnect != volOneRelevant )
+				{
+					if( !teachMidVrtx2Vol(volOneConnect, centerVrtx, newMidVrtx) )
+					{
+						UG_LOG("not taughtable eins " << std::endl);
+						return false;
+					}
+
+				}
+
+				if( volTwoConnect != volTwoRelevant )
+				{
+					if( !teachMidVrtx2Vol(volTwoConnect, centerVrtx, newMidVrtx) )
+					{
+						UG_LOG("not taughtable eins " << std::endl);
+						return false;
+					}
+
+				}
+
 			}
 		}
 	}
@@ -1943,7 +1986,7 @@ bool DiamondsEstablish3D::teachMidVrtx2Vol( Volume * const & vol, Vertex * const
 
 //////////////////////////////////////////////////////////////////////////////////
 
-bool DiamondsEstablish3D::shrinkVolumes()
+bool DiamondsEstablish3D::shrinkVolumesAndProduceMajorDiamonds()
 {
 	//	holds local side vertex indices
 	std::vector<size_t>	locVrtInds;
@@ -2244,6 +2287,11 @@ bool DiamondsEstablish3D::shrinkVolumes()
 //						return true;
 
 					}
+					else if ( m_attAccsFacIsShiftTriangleFac[sideFace] )
+					{
+						// TODO FIXME HHHHHHHHHHHHHHHHHHHH hier sind wir
+
+					}
 
 //					if( shiftVol && shiftVol2 )
 //					{
@@ -2401,8 +2449,9 @@ bool DiamondsEstablish3D::determineShiftFaces()
 			}
 
 		}
-		else if( numShiftVrcs == 2 && numCentrVrtcs == 1 )
+		else if( ( numShiftVrcs == 2 && numCentrVrtcs == 1 ) || ( numShiftVrcs == 1 && numCentrVrtcs == 2 ) )
 		{
+			// TODO FIXME das muss modifiziert werden HHHHHHHHHHHHHHHHHHH ECC!!!!!
 			m_attAccsFacIsShiftFac[fac] = true;
 			m_attAccsFacIsShiftTriangleFac[fac] = true;
 			UG_LOG("was ist das für ein Typ " << CalculateCenter( fac, m_aaPos ) << " -> " << typeid(*fac).name() << std::endl );

@@ -11302,7 +11302,9 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 									return false;
 								}
 
-								if( containsFractCrossEdge)
+								// TODO FIXME fragwürdig ob diese BEdingung sinnvoll oder wichtig
+								// scheint irrelevant zu sein
+								if( containsFractCrossEdge )
 								{
 									md_vecExpVols.push_back( expVol );
 
@@ -11400,14 +11402,16 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 									return false;
 								}
 
+								// TODO FIXME fragwürdig ob diese Bedingung wichtig oder unwichtig
+								// scheint irrelevant zu sein
 								if( containsFractCrossEdge )
 								{
 									if( expVol )
 										md_vecPairVols.push_back( expVol );
 
 									md_vecExpVolsTwo.push_back( expVolTwo );
+
 								}
-								//}
 //								else
 //								{
 //									if( ! addNewVol2Shrink4Diams(locVrtInds, sv, expVolTwo, tFace, newSubs ) )
