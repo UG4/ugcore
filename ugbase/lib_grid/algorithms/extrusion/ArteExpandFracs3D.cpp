@@ -150,7 +150,8 @@ ArteExpandFracs3D::ArteExpandFracs3D(
 	  m_vecSideDiamElmsDirectCreate(VecSideDiamElemsDirectCreated()),
 	  md_vecExpVols(std::vector<Volume* >()),
 	  md_vecExpVolsTwo(std::vector<Volume* >()),
-	  md_vecPairVols(std::vector<Volume* >())
+	  md_vecPairVols(std::vector<Volume* >()),
+	  md_vecVolECC(std::vector<Volume* >())
 	  // m_vecVolMightBeFromCrossCleftPt(std::vector<Volume*>)
 //	  m_attVolIsNotFromCrossPt(ABool())
 //	  m_attAccsVolIsNotFromCrossPt(Grid::VolumeAttachmentAccessor<ABool>()),
@@ -6506,6 +6507,8 @@ bool ArteExpandFracs3D::expandWithinTheSegment( ArteExpandFracs3D::SegmentLimiti
 
 	segmLimSides.spuckVecFulldimElem( volsInSegm );
 
+	// SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+	// hier muss der Schluessel liegen auch fuer die ECC Diamanten Volumen, die vergessen worden sind bisher
 	for( Volume * const & vol : volsInSegm )
 	{
 		std::vector<Vertex*> & newVrts4Fac = m_aaVrtVecVol[ vol ];
@@ -8426,6 +8429,14 @@ bool ArteExpandFracs3D::createNewElements()
 		{
 			m_sh.assign_subset( ev, d_sudoPairVols );
 		}
+
+		IndexType d_sudoECCVols = m_sh.num_subsets();
+
+		for( Volume * ev : md_vecVolECC )
+		{
+			m_sh.assign_subset( ev, d_sudoECCVols );
+		}
+
 
 		UG_LOG("number exp vols " << md_vecExpVols.size() << std::endl);
 
@@ -11243,6 +11254,8 @@ bool ArteExpandFracs3D::etablishVolumesAtEndingCrossingFractures( std::vector<Vo
 							SideDiamElemsDirectCreated sidiel( expVolECC, secondVrtxCutEdge, subsetECC, ecfsi.spuckSudoFractNotEnding() );
 
 							m_vecSideDiamElmsDirectCreate.push_back(sidiel);
+
+							md_vecVolECC.push_back(expVolECC);
 						}
 
 						if( expVolCreated )

@@ -555,6 +555,7 @@ private:
 	std::vector<Volume* > md_vecExpVols;
 	std::vector<Volume* > md_vecExpVolsTwo;
 	std::vector<Volume* > md_vecPairVols;
+	std::vector<Volume* > md_vecVolECC;
 
 };
 

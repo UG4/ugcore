@@ -1571,6 +1571,8 @@ bool DiamondsEstablish3D::detachMarkers()
 bool DiamondsEstablish3D::assignBasicAtts()
 {
 
+	UG_LOG("establish basic atts " << std::endl);
+
 	for( ElemGroupVrtx2BQuenched4Diams egv2bq : m_vecElemGroupVrtx2BQuenched )
 	{
 		Vertex * centerVrtx;
@@ -1590,6 +1592,8 @@ bool DiamondsEstablish3D::assignBasicAtts()
 		bool sudoAlreadyKnown = generateNewDiamSudos(centerVrtx, sudoList);
 
 	}
+
+	UG_LOG("established basic atts " << std::endl);
 
 //	for(VolumeIterator iterSurrVol = m_sel.volumes_begin(); iterSurrVol != m_sel.volumes_end(); iterSurrVol++ )
 //	{
@@ -1891,6 +1895,34 @@ bool DiamondsEstablish3D::distributeInfosForShrinkingVols()
 
 			e2bq.spuckMidPointOfShiftVrtcs(newMidVrtx);
 
+
+#if 0
+
+//			IndexType d_volSubsTest = m_sh.num_subsets();
+
+			UG_LOG("test subsets with new vertices mid " << std::endl);
+
+			for(VolumeIterator iterVol = m_sel.volumes_begin(); iterVol != m_sel.volumes_end(); ++iterVol )
+			{
+				Volume* vol = *iterVol;
+
+				if( !teachMidVrtx2Vol( vol, centerVrtx, newMidVrtx) )
+				{
+					UG_LOG("not taughtable" << std::endl);
+					return false;
+				}
+
+//				m_sh.assign_subset( vol, d_volSubsTest );
+			}
+
+			UG_LOG("tested subsets with new vertices mid " << std::endl);
+
+//			return false;
+#else
+
+			// SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+			// hier muss das ganze Segment dazu!!!! nicht nur die direkt angrenzenden!!!!
+			// TODO FIXME Segment bestimmen! sonst geht das immer schief! selbst ohne endende Klüfte sogar vermutlich!!!!!s
 			for( VolumeElementFaceQuintuplet & vef5 : vvef5 )
 			{
 				PairVolumeEdgeCombi pvet;
@@ -1943,7 +1975,9 @@ bool DiamondsEstablish3D::distributeInfosForShrinkingVols()
 
 				}
 
+
 			}
+#endif
 		}
 	}
 
@@ -1974,7 +2008,8 @@ bool DiamondsEstablish3D::teachMidVrtx2Vol( Volume * const & vol, Vertex * const
 		}
 	}
 
-	if( taught != 1 )
+//	if( taught != 1 )
+	if( taught > 1 )
 	{
 		UG_LOG("strange problem with the volume " << taught << std::endl);
 		m_sh.assign_subset(vol, m_sh.num_subsets());
@@ -2344,7 +2379,10 @@ bool DiamondsEstablish3D::shrinkVolumesAndProduceMajorDiamonds()
 //	}
 
 	UG_LOG("Volumes erzeugt " << std::endl);
-#if 1
+
+	// das löscht alle Volumen, die bei ECC in der Nähe wegfallen
+
+	IndexType d_sudoNumFac = m_sh.num_subsets();
 
 	for(FaceIterator iter = m_sel.begin<Face>(); iter != m_sel.end<Face>();)
 	{
@@ -2352,8 +2390,15 @@ bool DiamondsEstablish3D::shrinkVolumesAndProduceMajorDiamonds()
 		++iter;
 
 		if( ! m_attAccsFacIsShiftFac[fac] && ! m_attAccsFacIsDirectCreatedFac[fac] )
-			m_grid.erase(fac);
+		{
+			// m_grid.erase(fac);
+			m_sh.assign_subset( fac, d_sudoNumFac );
+		}
 	}
+
+	// das löscht nur einen Teil der Volumen, die weg fallen bei ECC in der Nähe
+
+	IndexType d_sudoNumEdg = m_sh.num_subsets();
 
 	for( EdgeIterator itEdg = m_sel.begin<Edge>(); itEdg != m_sel.end<Edge>(); )
 	{
@@ -2362,13 +2407,13 @@ bool DiamondsEstablish3D::shrinkVolumesAndProduceMajorDiamonds()
 
 		if( m_attAccsEdgeCanBeRemoved[edg] && ! m_attAccsEdgIsDirectCreatedEdge[edg] )
 		{
-			m_grid.erase(edg);
+			m_sh.assign_subset( edg, d_sudoNumEdg );
+//			m_grid.erase(edg);
 		}
 	}
 
 	UG_LOG("unnoetige Ecken entfernt " << std::endl);
 
-#endif
 	UG_LOG("Gesichter entfernt " << std::endl);
 
 
@@ -2847,6 +2892,7 @@ bool DiamondsEstablish3D::assignSudoOfNewVols2VolAndSubElems(Volume * & vol, Ind
 
 bool DiamondsEstablish3D::detectRemovableEdges()
 {
+//	IndexType d_susenum = m_sh.num_subsets();
 
 	for( FaceIterator itFac = m_sel.begin<Face>(); itFac != m_sel.end<Face>(); itFac++)
 	{
@@ -2899,11 +2945,14 @@ bool DiamondsEstablish3D::detectRemovableEdges()
 				if( numAssoCenterVrcs == 1 )
 				{
 					m_attAccsEdgeCanBeRemoved[edg] = true;
+//					m_sh.assign_subset( edg, d_susenum );
 				}
 
 			}
 		}
 	}
+
+//	return false;
 
 	return true;
 }
