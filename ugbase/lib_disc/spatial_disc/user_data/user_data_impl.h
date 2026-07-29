@@ -48,7 +48,6 @@ ICplUserData<dim>::ICplUserData()
 {
 	m_vNumIP.clear();
 	m_vMayChange.clear();
-	m_locPosDim = -1;
 	m_pvLocIP1d.clear(); m_pvLocIP2d.clear(); m_pvLocIP3d.clear();
 	m_vTime.clear(); m_vTime.push_back(0.0);
 }

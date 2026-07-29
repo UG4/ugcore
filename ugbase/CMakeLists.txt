@@ -32,7 +32,7 @@
 # ugbase
 ################################################
 
-cmake_minimum_required(VERSION 2.8.12...3.27.1)
+cmake_minimum_required(VERSION 2.8.12...4.4)
 
 project(P_UGBASE)
 

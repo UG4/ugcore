@@ -52,6 +52,7 @@
 #include "lib_disc/spatial_disc/user_data/linker/scale_add_linker.h"
 #include "lib_disc/spatial_disc/user_data/linker/inverse_linker.h"
 #include "lib_disc/spatial_disc/user_data/linker/darcy_velocity_linker.h"
+#include "lib_disc/spatial_disc/user_data/linker/cons_gravity_linker.h"
 #include "lib_disc/spatial_disc/user_data/linker/bingham_viscosity_linker.h"
 #include "lib_disc/spatial_disc/user_data/linker/projection_linker.h"
 #include "lib_disc/spatial_disc/user_data/linker/adapter.h"
@@ -376,7 +377,23 @@ static void Dimension(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "DarcyVelocityLinker", dimTag);
 	}
-
+	
+//	ConsistentGravityLinker
+	{
+		typedef ConsistentGravityLinker<dim> T;
+		typedef DependentUserData<MathVector<dim>, dim> TBase;
+		string name = string("ConsistentGravityLinker").append(dimSuffix);
+		reg.add_class_<T, TBase>(name, grp)
+			.add_method("set_gravity", static_cast<void (T::*)(const std::vector<number>&)>(&T::set_gravity))
+			.add_method("set_gravity", static_cast<void (T::*)(number)>(&T::set_gravity))
+			.add_method("set_density", static_cast<void (T::*)(number)>(&T::set_density))
+			.add_method("set_density", static_cast<void (T::*)(SmartPtr<CplUserData<number,dim> >)>(&T::set_density))
+			.add_method("set_no_derivatives",  &T::set_no_derivatives)
+			.add_constructor()
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ConsistentGravityLinker", dimTag);
+	}
+	
 //	BinghamViscosityLinker
 	{
 		typedef BinghamViscosityLinker<dim> T;
