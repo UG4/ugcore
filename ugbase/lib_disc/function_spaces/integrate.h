@@ -35,7 +35,6 @@
 
 #include <cmath>
 
-#include <boost/function.hpp>
 
 #include "common/common.h"
 
@@ -778,8 +777,8 @@ class UserDataDistIntegrandSq
 			m_fineData.dof_indices(pFineElem, vFineMI);
 			m_coarseData.dof_indices(pCoarseElem, vCoarseMI);*/
 
-			TData fineValues[numIP];
-			TData coarseValues[numIP];
+			std::vector<TData> fineValues(numIP);
+			std::vector<TData> coarseValues(numIP);
 
 
 
@@ -792,7 +791,7 @@ class UserDataDistIntegrandSq
 				uCoarse.resize(indCoarse);
 				GetLocalVector(uCoarse, m_coarseData.grid_function());
 
-				(*m_spData)(coarseValues, vGlobIP, m_time, this->m_si, pCoarseElem,
+				(*m_spData)(&(coarseValues[0]), vGlobIP, m_time, this->m_si, pCoarseElem,
 						&vCornerCoarse[0], &vCoarseLocIP[0], numIP, &uCoarse, &vJT[0]);
 			} UG_CATCH_THROW("UserDataDistIntegrandSq: Cannot evaluate coarse data.");
 
@@ -806,7 +805,7 @@ class UserDataDistIntegrandSq
 				uFine.resize(indFine);
 				GetLocalVector(uFine, m_fineData.grid_function());
 
-				(*m_spData)(fineValues, vGlobIP, m_time, this->m_si, pFineElem,
+				(*m_spData)(&(fineValues[0]), vGlobIP, m_time, this->m_si, pFineElem,
 						vCornerCoords, vFineLocIP, numIP, &uFine, &vJT[0]);
 			} UG_CATCH_THROW("UserDataDistIntegrandSq: Cannot evaluate fine data.");
 

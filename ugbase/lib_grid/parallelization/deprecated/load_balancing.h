@@ -123,7 +123,7 @@ bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 template <class TGeomBaseObj>
 bool PartitionMultiGrid_MetisKway(SubsetHandler& shPartitionOut,
 							 	  MultiGrid& grid, int numParts, size_t baseLevel,
-							 	  boost::function<int (TGeomBaseObj*, TGeomBaseObj*)>& weightFct);
+							 	  std::function<int (TGeomBaseObj*, TGeomBaseObj*)>& weightFct);
 
 ////////////////////////////////////////////////////////////////////////////////
 ///	Partitions the elements in the multi-grid using the METIS library

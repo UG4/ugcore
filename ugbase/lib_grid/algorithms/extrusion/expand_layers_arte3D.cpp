@@ -32,7 +32,7 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <boost/function.hpp>
+
 #include <stack>
 #include <vector>
 #include "lib_grid/lg_base.h"

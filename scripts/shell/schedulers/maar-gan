@@ -1,0 +1,230 @@
+#!/bin/bash
+######################################################################
+#                           Maar-Gan
+#-------------------------------------------------------------------
+# using SLURM
+######################################################################
+
+function UJS_Submit
+{
+	echo "Cluster: Maar-Gan. Scheduler: SLURM."
+	
+	# check consistency
+	if [ $((npe%nppn)) -ne 0 ]; then
+		echo "npe=$npe is not divisible by nppn=$nppn"
+		exit
+	fi
+	
+	if [ $nnodes -gt 128 ]; then
+		echo "Maar-Gan does not provide more than 128 nodes for one job."
+		return
+	fi	
+	
+	## interactive (devel) jobs (not tested)
+	# Once an allocation has been made, the salloc command will start a bash
+	# on the login node where the submission was done. After a successful
+	# allocation the users can execute srun from that shell and they can
+	# spawn interactively their applications. The interactive session is
+	# terminated by exiting the shell.
+	# In order to obtain a shell on the first allocated compute nodes
+	# (like command “msub -I“ from Moab), the users can start a remote shell
+	# from within the current session and connect it to a pseudo terminal
+	# (pty) using the srun command with a shell as an argument. For example:
+	#     srun --cpu_bind=none --nodes=2 --pty /bin/bash
+	# After gaining access to the remote shell it is possible to run srun
+	# again from that remote shell in order to execute interactively
+	# applications without any delays (no scheduling delays since the
+	# allocation has already been granted).
+	# For more details, cf.:
+	# "Maar-Gan - User's Manual for the Batch System - Slurm"
+	if [ $interactive == true ]; then
+		
+		if [ $walltime == "unlimited" ]; then
+			walltime=00:30:00
+		fi
+		
+		# todo: check walltime is <= 2h
+		
+		if [ $nnodes -gt 8 ]; then
+			echo "ERROR: The maximum number of nodes for interactive jobs is 8."
+			return
+		fi
+		
+		commandline="salloc -N $nnodes -n $npe --partition=devel --job-name=$jobname --time=$walltime"
+		echo " command:      "$commandline >> info.txt	
+	
+		echo "[[ current cluster allocation"
+		squeue
+		echo "]] current cluster allocation"
+		
+		if [ $test == true ]; then
+			echo "ONLY testing - NOT executing."
+			echo "Submit/Start: $commandline"
+			return
+		fi
+				
+		echo "Start: $commandline"
+		
+		$commandline | tee $outdir/job.output
+		return=$?	
+		if [ ! $return == 0 ]; then
+			echo "ERROR: srun returned $return. Job has NOT been started."
+			exit
+		fi
+		
+	## BATCH jobs
+	else
+		
+		# walltime handling
+		if [ $walltime == "unlimited" ]; then
+			walltime=00:30:00
+		fi
+		
+		echo "Create: $outdir/job.sh"
+		
+		#MYLDLPATH=/bgsys/drivers/ppcfloor/comm/lib/
+		
+		# mail notification handling
+		maarganNotification="NONE"
+		if [ $mail == true ]; then 
+			if [ -z "$UGSUBMIT_EMAIL" ]; then
+				echo "please set UGSUBMIT_EMAIL or specify email with -email. Aborting."
+				exit
+			fi
+		
+			if [ $mailStart == true ]; then
+				maarganNotification="BEGIN"
+			fi
+			if [ $mailEnd == true ]; then
+				if [ $maarganNotification == "NONE" ]; then
+					maarganNotification="END"
+				else
+					maarganNotification="ALL"
+				fi
+			fi
+			if [ $mailError == true ]; then
+				if [ $maarganNotification == "NONE" ]; then
+					maarganNotification="FAIL"
+				else
+					maarganNotification="ALL"
+				fi
+			fi	 
+		fi
+		
+		# generic resources
+		if [ -z "$maargan_mem" ]; then
+			maargan_gres="mem128"
+		elif [ "$maargan_mem" == "128" -o "$maargan_mem" == "256" -o "$maargan_mem" == "512" ]; then
+			maargan_gres="mem${maargan_mem}"
+		else
+			echo "Jureca-memory parameter not set correctly (\"$maargan_mem\"). Valid values are: 128, 256, 512."
+			return
+		fi
+		
+		# partition
+		if [ -z "$maargan_part" ]; then
+			maargan_part="debug"
+		fi
+		if [ "$maargan_part" == "devel" ]; then
+			if [ ! "$maargan_gres" == "mem128" ]; then
+				echo "The Jureca devel partition can only be used with 128G memory nodes."
+				return
+			fi
+		elif [ "$maargan_part" == "debug" ]; then
+			if [ ! "$maargan_gres" == "mem128" ]; then
+				echo "The Jureca batch partition can only be used with 128G memory nodes."
+				return
+			fi
+		elif [ "$maargan_part" == "mem256" ]; then
+			if [ ! "$maargan_gres" == "mem256" ]; then
+				echo "The Jureca mem256 partition can only be used with 256G nodes. Set -Jureca-memory 256."
+				return
+			fi
+		elif [ "$maargan_part" == "mem512" ]; then
+			if [ ! "$maargan_gres" == "mem512" ]; then
+				echo "The Jureca mem512 partition can only be used with 512G nodes. Set -Jureca-memory 512."
+				return
+			fi
+		else
+			echo "Jureca-partition parameter not set correctly. Valid values are: devel, batch, mem512."
+			return
+		fi
+		
+		
+		# write job script		
+		cat > job.sh << EOF
+#!/bin/bash
+echo "JOBID=\$SLURM_JOB_ID"
+env | grep SLURM
+
+#SBATCH --job-name=$jobname
+#SBATCH --nodes=$nnodes
+#SBATCH --ntasks=$npe
+#SBATCH --time=$walltime
+#SBATCH --error=job.error
+#SBATCH --output=job.output
+#SBATCH --mail-type=$maarganNotification
+#SBATCH --mail-user=$UGSUBMIT_EMAIL
+
+$profilePrefix
+srun -N $nnodes -n $npe -p $maargan_part $executable $args
+
+
+
+EOF
+
+		# execute command (or only print it in test case)
+		commandline="sbatch -N $nnodes -n $npe job.sh"
+		echo " command:      "$commandline >> info.txt
+	
+		if [ $test == true ]; then
+			echo "ONLY testing - NOT executing."
+			echo "Submit/Start: $commandline"
+			return
+		fi
+	
+		echo "Submit: $commandline"
+	 	commlineoutput=$($commandline)
+	 	echo "$commlineoutput"
+		jobid=$(echo $commlineoutput | sed 's/.*[^0-9]\([0-9]\+\)[^0-9]*$/\1/')
+	fi
+}
+
+
+
+function UJS_GetOptions
+{
+	nppnmax=24
+	pemax=3072	
+}
+
+function UJS_Info
+{
+	echo "UGSUBMIT Info for Maar-Gan:"
+	if [ ! -z $1 ] && [ $1 == "all" ]; then
+		#echo "squeue -o \"%.7i %6C %6D %.20j %.10u %.8T %.10M %.10l %.6D %19R\""
+		squeue -o "%.7i %6C %6D %.20j %.10u %.8T %.10M %.10l %.6D %19R"
+	else
+		#echo "squeue -u $USER -o \"%.7i %6C %6D %.20j %.10u %.8T %.10M %.10l %.6D %19R\""
+		squeue -u $USER -o "%.7i %6C %6D %.20j %.10u %.8T %.10M %.10l %.6D %19R"
+	fi	
+}
+
+function UJS_Cancel
+{
+	echo "Using SLURM on Maar-Gan"
+	if [ ! -z $1 ] && [ $1 == "all" ]; then
+		echo "your jobs:"
+		squeue -u $USER -o "%.7i %6C %6D %.50j %.10u %.8T %.10M %.10l %.6D %19R"
+		echo " "
+		read -p "Are you sure you want to cancel all your jobs (yes=j,J,y or Y) ? " -n 1 -r
+		echo " "		
+		if [[ $REPLY =~ ^[JjYy]$ ]]
+		then			
+		    scancel --user=$USER
+		fi
+		
+	else
+		scancel $1
+	fi
+}

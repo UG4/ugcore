@@ -31,7 +31,6 @@
  * GNU Lesser General Public License for more details.
  */
 
-#include <boost/function.hpp>
 
 #include "expand_layers.h"
 #include "expand_layers_arte.h"

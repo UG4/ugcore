@@ -48,7 +48,6 @@ ICplUserData<dim>::ICplUserData()
 {
 	m_vNumIP.clear();
 	m_vMayChange.clear();
-	m_locPosDim = -1;
 	m_pvLocIP1d.clear(); m_pvLocIP2d.clear(); m_pvLocIP3d.clear();
 	m_vTime.clear(); m_vTime.push_back(0.0);
 }
@@ -274,7 +273,7 @@ register_storage_callback(DataImport<TData,dim>* obj, void (DataImport<TData,dim
 {
 	typedef std::pair<DataImport<TData,dim>*, CallbackFct> Pair;
 	//	m_vCallback.push_back(Pair(obj,func));
-	m_vCallback.push_back(Pair(obj, boost::bind(func, obj)));
+	m_vCallback.push_back(Pair(obj, std::bind(func, obj)));
 }
 
 template <typename TData, int dim, typename TRet>

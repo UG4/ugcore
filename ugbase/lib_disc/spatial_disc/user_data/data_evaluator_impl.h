@@ -391,6 +391,12 @@ const LocalIndices& ind, bool bDeriv)
 {
 	try
 	{
+	// 	NOTE: constant data is not processed, since constant == independent of the element
+		for(size_t i = 0; i < m_vPosData.size(); ++i)
+			m_vPosData[i]->prepare_element(elem, vCornerCoords);
+		for(size_t i = 0; i < m_vDependentData.size(); ++i)
+			m_vDependentData[i]->prepare_element(elem, vCornerCoords);
+	
 		for (size_t i = 0; i < m_vElemDisc[PT_ALL].size(); ++i)
 			m_vElemDisc[PT_ALL][i]->do_prep_err_est_elem(u, elem, vCornerCoords);
 	}
