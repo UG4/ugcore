@@ -1,8 +1,8 @@
 # ugcore
-[![jenkins-CI](https://github.com/UG4/ugcore/actions/workflows/jenkins-trigger.yml/badge.svg)](https://github.com/UG4/ugcore/actions/workflows/jenkins-trigger.yml)
+[![GitLab Pipeline](https://gitlab.com/ug4-project/ugcore/badges/main/pipeline.svg)](https://gitlab.com/ug4-project/ugcore/-/pipelines)
+[![Appveyor status](https://ci.appveyor.com/api/projects/status/hf3v875mtwmsd36g/branch/master?svg=true)](https://ci.appveyor.com/project/anaegel/ugcore/branch/master)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=UG4_ugcore&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=UG4_ugcore)
 [![Code Climate](https://codeclimate.com/github/UG4/ugcore/badges/gpa.svg)](https://codeclimate.com/github/UG4/ugcore)
-[![Issue Count](https://codeclimate.com/github/UG4/ugcore/badges/issue_count.svg)](https://codeclimate.com/github/UG4/ugcore)
 [![PyPI version](https://img.shields.io/pypi/v/ug4py-base.svg)](https://pypi.org/project/ug4py-base/)
 
 This repository contains the core functionality of **UG4**. Includes sources, build-scripts and utility-scripts

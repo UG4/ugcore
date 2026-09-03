@@ -38,6 +38,7 @@
 #include <functional>
 
 #include "common/types.h"
+#include "lib_grid/grid_objects/grid_dim_traits.h"
 #include "lib_disc/common/local_algebra.h"
 #include "lib_disc/time_disc/solution_time_series.h"
 #include "lib_disc/common/function_group.h"
@@ -272,7 +273,7 @@ class ICplUserData : virtual public UserDataInfo
 
 	///	returns the subset of evaluation
 		int subset() const {return m_si;}
-
+		
 	///	set evaluation time
 		void set_times(const std::vector<number>& vTime) {m_vTime = vTime;}
 
@@ -392,6 +393,9 @@ class ICplUserData : virtual public UserDataInfo
 	///	returns true iff the time point specification is equal to the current one, or not specified
 		inline bool at_current_time(size_t s) const;
 
+	/// called in the preparation for a particular element
+		virtual void prepare_element(GridObject* e, const MathVector<dim> vCornerCoords[]) {}
+	
 	///	set global positions
 		void set_global_ips(size_t s, const MathVector<dim>* vPos, size_t numIP);
 
@@ -481,7 +485,7 @@ class ICplUserData : virtual public UserDataInfo
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-//	UserData
+//	CplUserData
 ////////////////////////////////////////////////////////////////////////////////
 
 // predeclaration

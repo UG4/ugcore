@@ -34,6 +34,8 @@
 #define __H__UG__element_visitor_util__
 
 #include <vector>
+#include <functional>
+
 #include "grid/grid.h"
 #include "common/util/metaprogramming_util.h"
 
@@ -43,7 +45,7 @@ namespace ug
 ///	Visits all elements between begin and end and executes the visitorCallback on them
 template <class TIter>
 void VisitAll(const TIter begin, const TIter end,
-			  boost::function<void (typename TIter::value_type)> visitorCallback)
+			  std::function<void (typename TIter::value_type)> visitorCallback)
 {
 	TIter iter = begin;
 	while(iter != end){
@@ -70,8 +72,8 @@ void VisitAll(const TIter begin, const TIter end,
  */
 template <class TIter>
 void VisitAreaBoundary(Grid& g, const TIter begin, const TIter end,
-		      boost::function<bool (typename TIter::value_type)> cbBelongsToArea,
-			  boost::function<void (typename Pointer2Value<typename TIter::value_type>::type::side)> cbVisitSide)
+		      std::function<bool (typename TIter::value_type)> cbBelongsToArea,
+			  std::function<void (typename Pointer2Value<typename TIter::value_type>::type::side)> cbVisitSide)
 {
 	typedef typename Pointer2Value<typename TIter::value_type>::type	TElem;
 	typedef typename TElem::side										TSide;

@@ -48,17 +48,19 @@ o: <boost/bind.hpp>
 - ugcore/ugbase/common/util/message_hub.h: 
 f: <boost/bind.hpp>
 
+## Pointee
+f: ugcore/ugbase/common/util/smart_pointer.h: <boost/pointee.hpp>
+
 # Unresolved
-## Misc
-- ugcore/ugbase/common/util/smart_pointer.h: 
-<boost/pointee.hpp>
+## Lexical cast
 - ugcore/ugbase/lib_grid/refinement/projectors/neurite_projector.cpp: 
 <boost/lexical_cast.hpp>
 - ugcore/ugbase/lib_grid/file_io/file_io_swc.cpp: 
 <boost/lexical_cast.hpp>
 - ugcore/ugbase/lib_algebra/common/matrixio/matrix_io_mtx.h: 
-<boost/algorithm/string.hpp>, 
-<boost/lexical_cast.hpp>
+<boost/lexical_cast.hpp>,
+<boost/algorithm/string.hpp>
+
 
 ## Iterator
 - ugcore/ugbase/lib_algebra/graph_interface/undirected_boost.h: 
@@ -70,8 +72,9 @@ f: <boost/bind.hpp>
 - ugcore/ugbase/lib_algebra/graph_interface/sparsematrix_boost.h: 
 <boost/iterator/counting_iterator.hpp>
 <boost/graph/properties.hpp> 
-- ugcore/ugbase/lib_algebra/graph_interface/undirected.h: <boost/geometry/iterators/concatenate_iterator.hpp>,
- <boost/graph/adjacency_list.hpp>
+- ugcore/ugbase/lib_algebra/graph_interface/undirected.h: 
+<boost/geometry/iterators/concatenate_iterator.hpp>,
+<boost/graph/adjacency_list.hpp>
 
 
 ## Archive
