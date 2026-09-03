@@ -35,7 +35,8 @@ project(UG_PYBIND11)
 
 if(USE_PYBIND11)
 	SET(pyModuleName pyugcore) # Must match module name!
-	pybind11_add_module(${pyModuleName} ug_pybind.cpp python_user_data.cpp python_views.cpp)
+	python_add_library(${pyModuleName}  MODULE  ug_pybind.cpp python_user_data.cpp python_views.cpp WITH_SOABI)
+	# pybind11_add_module(${pyModuleName} ug_pybind.cpp python_user_data.cpp python_views.cpp)
 	set_target_properties(${pyModuleName} PROPERTIES	
   		CXX_STANDARD 11 
   		CXX_STANDARD_REQUIRED YES

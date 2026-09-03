@@ -125,7 +125,7 @@ if(USE_PYBIND11)
     cmake_policy(SET CMP0057 NEW)
 
 	# Expand includes.
-    include_directories(${pybind11_INCLUDE_DIRS})
+    include_directories(${Python_INCLUDE_DIRS} ${pybind11_INCLUDE_DIR})
     	
 	# Expand libraries.
 	set(linkLibraries ${linkLibraries} ${Python_LIBRARIES})
