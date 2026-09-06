@@ -47,7 +47,9 @@ namespace ug{
  * and determines the number of the flag sets. It provides tools for
  * allocating the flags.
  *
- * Note that new flag blocks can be added but they cannot be removed
+ * Note that the names refer to flag blocks, not particular flags (bits).
+ *
+ * Note also that new flag blocks can be added but they cannot be removed
  * separately. (Otherwise, one had to restructure the flags in all the
  * vectors.)
  */
@@ -69,7 +71,7 @@ public:
 
 private:
 
-	/// Private constructor: This class is used only for singletons
+/// Private constructor: This class is used only for singletons
 	DoFFlagManager () {};
 
 	struct flag_block_alloc_type
@@ -83,7 +85,7 @@ private:
 	};
 	
 ///	finds the allocation structure by the name of the block
-	flag_block_alloc_type * find_alloc_by_name (const char* name)
+	const flag_block_alloc_type * find_alloc_by_name (const char* name) const
 	{
 		for(size_t i = 0; i < m_flag_blocks.size(); i++)
 			if(m_flag_blocks[i].block_name == name)
@@ -133,44 +135,61 @@ public:
 		size_t& bit_idx ///< index of the minor bit
 	) const
 	{
-		flag_block_alloc_type * a = find_alloc_by_name(name);
+		const flag_block_alloc_type * a = find_alloc_by_name(name);
 		
 		if(a == NULL) return false;
 		
 		set_idx = a->set_idx;
 		bit_idx = a->block_idx * blockSize;
+		return true;
 	}
 	
-	//! returns the flag block in the minor bits of the return value
+/// returns the flag block in the minor bits of the return value
 	/**
+	 * You can also get a particular flag from the block by adding its index
+	 * in the block to b.
+	 *
 	 * Remark: Note that the major bits may be arbitrary (contain the other flags).
 	 * We do not care about them for efficiency reasons. Use flagBlockFrame
 	 * to clean it.
 	 */
-	inline static flag_unit_type flag
+	inline static flag_unit_type flag_block
 	(
 		const vector_type& vec, ///< the DoF vector to read the flag from
 		size_t i, ///< algebra index of the dof block
 		size_t s, ///< index of the flag set
-		size_t f_offset ///< index of the minor bit
+		size_t b ///< index of the minor bit of the block
 	)
 	{
-		return vec.flag(i,s) >> f_offset;
-	}	
+		return vec.flag(i,s) >> b;
+	}
+	
+///	returns a particular flag
+	inline static bool flag
+	(
+		vector_type& vec, ///< the DoF vector to set the flag in
+		size_t i, ///< algebra index of the DoF block
+		size_t s, ///< index of the flag set
+		size_t b, ///< index of the minor bit of the flag block
+		size_t f_idx ///< index of the flag in the block
+	)
+	{
+		return ((vec.flag(i,s) >> (b + f_idx)) & 1);
+	}
 
-	//! sets a flag block at a given algebra index
+/// sets a flag block at a given algebra index
 	/**
 	 * WARNING! Note that all the flags for a given block are set simultaneously.
 	 *
 	 * WARNING! We assume that only the last blockSize bits in 'flag_block'
 	 * may be non-zero! Use flagBlockFrame to clean the other bits!
 	 */
-	inline static void set_flag
+	inline static void set_flag_block
 	(
 		vector_type& vec, ///< the DoF vector to set the flag in
 		size_t i, ///< algebra index of the DoF block
 		size_t s, ///< index of the flag set
-		size_t f_offset, ///< index of the minor bit of the flag block
+		size_t b, ///< index of the minor bit of the flag block
 		flag_unit_type flag_block ///< value of the block (in the minor bits) to set
 	)
 	{
@@ -181,11 +200,54 @@ public:
 		}
 		else
 		{
-			const flag_unit_type mask = flagBlockFrame << f_offset;
+			const flag_unit_type mask = flagBlockFrame << b;
 			
-			vec.flag(i,s) = (vec.flag(i,s) & (~mask)) | (flag_block << f_offset);
+			vec.flag(i,s) = (vec.flag(i,s) & (~mask)) | (flag_block << b);
 		}
 	}
+	
+///	sets a particular flag (to 1)
+	inline static void set_flag
+	(
+		vector_type& vec, ///< the DoF vector to set the flag in
+		size_t i, ///< algebra index of the DoF block
+		size_t s, ///< index of the flag set
+		size_t b, ///< index of the minor bit of the flag block
+		size_t f_idx ///< index of the flag in the block
+	)
+	{
+		if(blockSize <= 0) // note that his is a constant expression
+		{
+		// Variable block size: We assume, there is a single flag block per flag unit
+			vec.flag(i,s) |= 1 << f_idx;
+		}
+		else
+		{
+			vec.flag(i,s) |= 1 << (b + f_idx);
+		}
+	}
+	
+///	clear a particular flag
+	inline static void clear_flag
+	(
+		vector_type& vec, ///< the DoF vector to set the flag in
+		size_t i, ///< algebra index of the DoF block
+		size_t s, ///< index of the flag set
+		size_t b, ///< index of the minor bit of the flag block
+		size_t f_idx ///< index of the flag in the block
+	)
+	{
+		if(blockSize <= 0) // note that his is a constant expression
+		{
+		// Variable block size: We assume, there is a single flag block per flag unit
+			vec.flag(i,s) &= ~(1 << f_idx);
+		}
+		else
+		{
+			vec.flag(i,s) &= ~(1 << (b + f_idx));
+		}
+	}
+	
 ///	creates the flags for a particular vector
 	void create_flags
 	(
