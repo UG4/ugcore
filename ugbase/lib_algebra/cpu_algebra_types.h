@@ -90,20 +90,18 @@ namespace ug{
  *  those template functions, the implementation can be made independent
  *  on the type.
  *
- *  Flags are assigned to DoF blocks. All flags assigned to the same DoF
- *  block are stored in one or several flag units having the same index
- *  as the DoF block itself. A mapping assigning the flag units to DoF block
- *  indices is called a flag set. (E.i., one can consider a flag set as
- *  an array of the flag units indexed in the same way as the DoF blocks
- *  themseves.)
+ *  Flags are assigned to DoFs. All flags assigned to the same DoF block are
+ *  stored in one or several flag units having the same index as the DoF block
+ *  itself. A mapping assigning the flag units to DoF block indices is called
+ *  a flag set. (E.i., one can consider a flag set as an array of the flag
+ *  units indexed in the same way as the DoF blocks themseves.)
  *
- *  Inside the flag units, the flags are organized in blocks. The flag blocks
- *  have the same size as the DoF blocks. Every flag in a flag block marks
- *  the corresponding DoF in the DoF block and has for it the same meeting
- *  as the other flags in the same block. Every entire flag block is stored
- *  completely in one flag unit. How the blocks are placed in different units
- *  (i.e. the allocation of the flag blocks in the flag sets), is regulated
- *  by the flag manager.
+ *  Inside the flag units, the flags are organized in blocks corresponding to
+ *  the DoF blocks. The flag blocks have the same size as the DoF blocks.
+ *  Every flag in a flag block marks the corresponding DoF in the DoF block.
+ *  Every entire flag block is stored completely in one flag unit. How the
+ *  blocks are placed in different units (i.e. the allocation of the flag
+ *  blocks in the flag sets), is regulated by the flag manager.
  */
 
 ////////////////////////////////////////////////////////////////////////////////
