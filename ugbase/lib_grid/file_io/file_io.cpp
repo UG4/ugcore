@@ -304,7 +304,10 @@ static bool LoadGrid(Grid& grid, SPProjectionHandler* ph, size_t& num_ph, ISubse
 		if(procId == -1)
 			retVal = pcl::AllProcsTrue(retVal, procCom);
 		else
+		{
+			procCom.broadcast(num_ph, procId);
 			retVal = pcl::OneProcTrue(retVal, procCom);
+		}
 	#endif
 
 	return retVal;
