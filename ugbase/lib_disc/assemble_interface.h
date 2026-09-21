@@ -151,9 +151,19 @@ class IAssemble
 		 * \param[out] 	b 	Right-Hand-Side
 		 * \param[in]	gl	Grid Level
 		 */
-		virtual void assemble_linear(matrix_type& A, vector_type& b, const GridLevel& gl) = 0;
+		virtual void assemble_linear(matrix_type& A, vector_type& b, const vector_type& u, const GridLevel& gl) = 0;
+		void assemble_linear(matrix_type& A, vector_type& b, const GridLevel& gl)
+		{
+			UG_LOGN("HINT: assemble_linear without given solution is deprecated.\n"
+					"      Supply the solution as it will enter the solver as a third argument.");
+			// Use the rhs as solution. This will reproduce previous behavior
+			// when entries of b are assigned the corresponding entries of u.
+			assemble_linear(A, b, b, gl);
+		}
+		void assemble_linear(matrix_type& A, vector_type& b, const vector_type& u)
+		{assemble_linear(A, b, u, GridLevel());}
 		void assemble_linear(matrix_type& A, vector_type& b)
-		{assemble_linear(A,b, GridLevel());}
+		{assemble_linear(A, b, GridLevel());}
 
 	///	assembles rhs
 		virtual void assemble_rhs(vector_type& rhs, const vector_type& u, const GridLevel& gl) = 0;

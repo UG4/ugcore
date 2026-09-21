@@ -1272,7 +1272,7 @@ adjust_correction(const std::vector<TUserData*>& vUserData, int si,
 
 template <typename TDomain, typename TAlgebra>
 void DirichletBoundary<TDomain, TAlgebra>::
-adjust_linear(matrix_type& A, vector_type& b,
+adjust_linear(matrix_type& A, vector_type& b, const vector_type& u,
               ConstSmartPtr<DoFDistribution> dd, int type, number time)
 {
 	extract_data();

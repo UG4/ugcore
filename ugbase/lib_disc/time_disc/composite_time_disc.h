@@ -126,7 +126,7 @@ class CompositeTimeDiscretization
 		void assemble_defect(vector_type& d, const vector_type& u, const GridLevel& gl);
 
 		/// @copydoc IAssemble::assemble_linear
-		void assemble_linear(matrix_type& A, vector_type& b, const GridLevel& gl);
+		void assemble_linear(matrix_type& A, vector_type& b, const vector_type& u, const GridLevel& gl);
 
 		/// @copydoc IAssemble::assemble_rhs(vector_type&, vector_type&, GridLevel&)
 		void assemble_rhs(vector_type& b, const vector_type& u, const GridLevel& gl);
