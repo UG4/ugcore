@@ -142,29 +142,30 @@ private:
 			return 1;
 		}
 
-		number avDist = 0;
+		number minDist = std::numeric_limits<number>::max();
+		number maxDist = -std::numeric_limits<number>::max();
 		vector3 parentCenter (0, 0, 0);
 
 		for(size_t i = 0; i < numVrts; ++i){
 			vector3 p = pos(vrts[i]);
-			avDist += DistancePointToRay(p, m_center, m_axis);
+			number distToRay = DistancePointToRay(p, m_center, m_axis);
+			minDist = std::min(minDist, distToRay);
+			maxDist = std::max(maxDist, distToRay);
 			parentCenter += p;
 		}
 
-		avDist /= (number)numVrts;
+		const number dist = 0.5 * (minDist + maxDist);
 		VecScale(parentCenter, parentCenter, 1. / (number)numVrts);
 
 		vector3 proj, v;
 		ProjectPointToRay(proj, parentCenter, m_center, m_axis);
 		VecSubtract(v, parentCenter, proj);
 		number len = VecLength(v);
-		if(len > SMALL * avDist){	// if avDist is very small, len may be small, too
-			VecScale(v, v, avDist/len);
+		if(len > 1e-6 * dist){	// if avDist is very small, len may be small, too
+			VecScale(v, v, dist/len);
 			proj += v;
-			set_pos(vrt, proj);
 		}
-		else
-			set_pos(vrt, parentCenter);
+		set_pos(vrt, proj);
 
 		if(m_influenceRadius > 0) {
 			if(m_radius > m_influenceRadius){
