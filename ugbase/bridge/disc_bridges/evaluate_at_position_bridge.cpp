@@ -748,7 +748,7 @@ class NumberValuedUserDataPointEvaluator : public PointEvaluatorBase<TDomain, TA
 		virtual void write_header(std::ostream& output) override
 		{
 			output << "# Position Evaluating file - number valued\n";
-			output << "time" << this->m_separator;
+			output << "# time" << this->m_separator;
 
 			for (auto point : this->m_evaluationPoints)
 			{
