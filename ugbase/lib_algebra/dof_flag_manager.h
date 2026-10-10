@@ -167,7 +167,7 @@ public:
 ///	returns a particular flag
 	inline static bool flag
 	(
-		vector_type& vec, ///< the DoF vector to set the flag in
+		const vector_type& vec, ///< the DoF vector to set the flag in
 		size_t i, ///< algebra index of the DoF block
 		size_t s, ///< index of the flag set
 		size_t b, ///< index of the minor bit of the flag block

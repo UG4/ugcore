@@ -205,7 +205,7 @@ public:
 	(
 		size_t i, ///< algebra index of the dof block
 		size_t s ///< index of the flag set
-	);
+	) const;
 	
 	//! copies the flags
 	inline void copy_flags (const vector_type &v);
