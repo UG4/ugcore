@@ -55,21 +55,16 @@ using namespace std;
 namespace ug
 {
 
-//template <class TAPosition>
-//GlobalFracturedMediaRefiner<TAPosition>::
+
 GlobalFracturedMediaRefiner::
 GlobalFracturedMediaRefiner(SPRefinementProjector projector) :
 	IRefiner(projector),
 	m_pMG(NULL),
 	m_pSH(NULL)
 {
-//	initialize m_aPos to the default position attachment
-	//m_aPos = GetDefaultPositionAttachment<TAPosition>();
 }
 
 
-//template <class TAPosition>
-//GlobalFracturedMediaRefiner<TAPosition>::
 GlobalFracturedMediaRefiner::
 GlobalFracturedMediaRefiner(MultiGrid& mg, SPRefinementProjector projector) :
 	IRefiner(projector),
@@ -77,13 +72,8 @@ GlobalFracturedMediaRefiner(MultiGrid& mg, SPRefinementProjector projector) :
 {
 	m_pMG = NULL;
 	assign_grid(mg);
-//	initialize m_aPos to the default position attachment
-	//m_aPos = GetDefaultPositionAttachment<TAPosition>();
 }
 
-
-//template <class TAPosition>
-//GlobalFracturedMediaRefiner<TAPosition>::
 GlobalFracturedMediaRefiner::
 ~GlobalFracturedMediaRefiner()
 {
@@ -92,8 +82,6 @@ GlobalFracturedMediaRefiner::
 }
 
 
-//template <class TAPosition>
-//void GlobalFracturedMediaRefiner<TAPosition>::
 void GlobalFracturedMediaRefiner::
 grid_to_be_destroyed(Grid* grid)
 {
@@ -101,8 +89,6 @@ grid_to_be_destroyed(Grid* grid)
 }
 
 
-//template <class TAPosition>
-//void GlobalFracturedMediaRefiner<TAPosition>::
 void GlobalFracturedMediaRefiner::
 assign_grid(MultiGrid& mg)
 {
@@ -110,10 +96,8 @@ assign_grid(MultiGrid& mg)
 }
 
 
-//template <class TAPosition>
-//void GlobalFracturedMediaRefiner<TAPosition>::
-void GlobalFracturedMediaRefiner::
-assign_grid(MultiGrid* mg)
+
+void GlobalFracturedMediaRefiner::assign_grid(MultiGrid* mg)
 {
 	if(m_pMG){
 		m_pMG->unregister_observer(this);
@@ -129,8 +113,7 @@ assign_grid(MultiGrid* mg)
 	}
 }
 
-//template <class TAPosition>
-//void GlobalFracturedMediaRefiner<TAPosition>::
+
 void GlobalFracturedMediaRefiner::
 mark_as_fracture(int subInd, bool isFracture)
 {
@@ -186,13 +169,14 @@ num_marked_elems(std::vector<int>& numMarkedElemsOut)
 		numMarkedElemsOut.back() = m_pMG->num<TElem>(m_pMG->top_level());
 }
 
-//template <class TAPosition>
-//void GlobalFracturedMediaRefiner<TAPosition>::
+////////////////////////////////////////////////////////////////////////
 void GlobalFracturedMediaRefiner::
 perform_refinement()
 {
-	GFDR_PROFILE_FUNC();
 	UG_DLOG(LIB_GRID, 1, "GlobalFracturedMediaRefiner\n");
+	
+	GFDR_PROFILE_FUNC();
+	
 
 //	get the grid
 	if(!m_pMG)
@@ -333,9 +317,12 @@ perform_refinement()
 	{
 		if(!refinement_is_allowed(*iter))
 			continue;
-
-		Edge* e = *iter;
-
+	//	collect_objects_for_refine removed all edges that already were
+	//	refined. No need to check that again.		
+	Edge* e = *iter;
+/* #ifdef UG_DEBUG 
+	#endif
+*/
 		if(!(refinement_is_allowed(e->vertex(0)) && refinement_is_allowed(e->vertex(1))))
 		{
 			UG_THROW("Refinement has to be allowed for both corners of an edge, for"
@@ -383,7 +370,6 @@ perform_refinement()
 			continue;
 			
 		Face* f = *iter;
-
 	//	collect child-vertices
 		vVrts.clear();
 		for(uint j = 0; j < f->num_vertices(); ++j)
@@ -517,184 +503,6 @@ perform_refinement()
 
 	UG_DLOG(LIB_GRID, 1, "  refinement done.");
 }
-
-/*
-//template <class TAPosition>
-template <class TElem>
-//void GlobalFracturedMediaRefiner<TAPosition>::
-void GlobalFracturedMediaRefiner::
-assign_elem_and_side_marks()
-{
-	typedef typename MultiGrid::traits<TElem>::iterator	ElemIter;
-	typedef typename TElem::side	Side;
-
-	if(!m_pMG)
-		UG_THROW("No grid assigned!");
-
-	if(!m_pSH)
-		UG_THROW("No subset handler assigned");
-
-	if(m_pMG->num_levels() == 0)
-		UG_THROW("At least one level has to exist in the associated multi-grid.");
-
-//	we might need an attachment accessor for this one.
-//	Grid::VertexAttachmentAccessor<TAPosition> aaPos;
-//	if(!aaPos.access(*m_pMG, m_aPos))
-//		UG_THROW("You have to specify a valid position attachment through 'set_position_attachment'");
-
-	MultiGrid& mg = *m_pMG;
-
-//	iterate over all elements in the top level and adjust their marks
-	int topLvl = mg.num_levels() - 1;
-
-//	we only clear side marks and element marks here, since only those will be set again.
-	m_marker.clear();
-
-//	collect associated sides and elements in this vectors
-	std::vector<Side*>	sides, sidesCon;
-	std::vector<TElem*>	elems;
-	std::queue<TElem*>	unclassified;
-
-	for(ElemIter iter = mg.begin<TElem>(topLvl);
-		iter != mg.end<TElem>(topLvl); ++iter)
-	{
-		TElem* e = *iter;
-
-		m_marker.mark(e);
-
-	//	if the element is not a fracture element, we'll mark all sides for refinement
-	//	then we're done
-		if(!is_fracture_element(e)){
-			CollectAssociated(sides, mg, e);
-			for(size_t i = 0; i < sides.size(); ++i)
-				m_marker.mark(sides[i]);
-			continue;
-		}
-
-
-	//	find the side which is connected to a non-fracture element
-		CollectAssociated(sides, mg, e);
-		Side* outerSide = NULL;
-		for(size_t i_side = 0; i_side < sides.size(); ++i_side){
-			Side* s = sides[i_side];
-			CollectAssociated(elems, mg, s);
-			bool gotOne = false;
-			for(size_t i_elem = 0; i_elem < elems.size(); ++i_elem){
-				if(!is_fracture_element(elems[i_elem])){
-					gotOne = true;
-					break;
-				}
-			}
-
-			if(gotOne){
-				outerSide = s;
-				break;
-			}
-		}
-
-		if(outerSide){
-		//	the side is an interface between the fracture and the surrounding medium.
-			m_marker.mark(outerSide);
-
-		//	we now have to also mark the opposing side in e. Get the descriptor
-		//	of that side
-			typename geometry_traits<Side>::GeneralDescriptor desc;
-			if(e->get_opposing_side(outerSide, desc)){
-				Side* opSide = mg.get_element(desc);
-				if(opSide)
-					m_marker.mark(opSide);
-			}
-			else{
-			//	this should only happen if we're on a cap-element
-			//	we'll push the element to the list of unclassified elements
-				unclassified.push(e);
-			}
-		}
-		else{
-			UG_THROW("Invalid fracture structure. Each fracture element has to"
-					" be connected to non-fracture element.");
-		}
-	}
-
-//	we'll count the number of failed tries in a row, to avoid an infinite loop
-	size_t numFailedTries = 0;
-	while(!unclassified.empty()){
-		TElem* e = unclassified.front();
-		unclassified.pop();
-
-	//	first check if two sides are already marked (e.g. during an earlier iteration)
-	//	if this is the case, we'll ignore the element
-		CollectAssociated(sides, mg, e);
-		size_t numMarked = num_marked(sides);
-
-		if(numMarked == 2){
-		//	the additional side has been marked during iteration over an other element
-			continue;
-		}
-		else if(numMarked != 1){
-			UG_THROW("Unknown fracture topology encountered. "
-					<< numMarked << " sides marked, but only 1 should be marked."
-					" In element at " << GetGridObjectCenter(mg, e));
-		}
-
-	//	iterate over neighbors which lie in the fracture. If exactly one
-	//	neighbor has only one marked side (!=markedSide), then the side
-	//	connecting both will be marked.
-	//	If no neighbor is found with exactly one marked side, then an error is raised.
-	//	If more then one neighbors are found with exactly one marked side, then
-	//	the element is pushed back to queue.
-		Side* connectingSide = NULL;
-		int elemsFound = 0;// set to true, if an element with exactly one marked side is found.
-		for(size_t i_side = 0; i_side < sides.size(); ++i_side){
-			Side* s = sides[i_side];
-			if(m_marker.is_marked(s))
-				continue;
-
-		//	get the connected element of the side
-			CollectAssociated(elems, mg, s);
-			if(elems.size() != 2){
-				UG_THROW("Invalid fracture topology detected. Aborting.");
-			}
-
-			TElem* eCon;
-			if(elems[0] == e)	eCon = elems[1];
-			else				eCon = elems[0];
-
-		//	count the number of marked edges in eCon
-			CollectAssociated(sidesCon, mg, eCon);
-
-			if(num_marked(sidesCon) == 1){
-				++elemsFound;
-				connectingSide = s;
-			}
-		}
-
-		if(elemsFound == 0){
-			UG_THROW("Couldn't decide which inner edge to refine."
-					" Please check your fractures topology at "
-					<< GetGridObjectCenter(mg, e));
-		}
-		else if(elemsFound == 1){
-		//	we found the side which we have to mark.
-			m_marker.mark(connectingSide);
-			numFailedTries = 0;
-		}
-		else{
-		//	we have to push the element back to the queue
-			unclassified.push(e);
-			++numFailedTries;
-		//	prevent an infinite loop
-			if(numFailedTries >= unclassified.size()){
-				UG_THROW("Couldn't identify fracture structure.");
-			}
-		}
-	}
-
-//	mark sides of marked side elements
-	mark_sides_of_marked_top_level_elements<Side>();
-}
-*/
-
 
 template <class TElem>
 void GlobalFracturedMediaRefiner::
