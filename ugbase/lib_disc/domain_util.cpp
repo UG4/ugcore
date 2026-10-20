@@ -63,15 +63,17 @@ void LoadDomain(TDomain& domain, const char* filename, int procId)
 
 	for(size_t i_name = 0; i_name < additionalSHNames.size(); ++i_name)
 		ash[i_name] = domain.additional_subset_handler(additionalSHNames[i_name]);
-			
+	
+	domain.set_refinement_projector(ph); // this is required for broadcasting projections in the parallel case
+	
 	if(!LoadGridFromFile(*domain.grid(), ph, num_ph, *domain.subset_handler(), additionalSHNames, ash,
 							filename, domain.position_attachment(), procId))
 	{
 		UG_THROW("LoadDomain: Could not load file: "<<filename);
 	}
 	
-	if(num_ph != 0)
-		domain.set_refinement_projector(ph);
+	if(num_ph == 0)
+		domain.set_refinement_projector(SPNULL);
 }
 
 
