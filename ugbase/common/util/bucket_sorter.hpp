@@ -32,7 +32,6 @@
 
 #include <vector>
 #include <cassert>
-//#include <boost/limits.hpp>
 #include "trace.h"
 
 // the __FreeBSD__ condition is a wild guess.

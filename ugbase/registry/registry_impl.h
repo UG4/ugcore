@@ -158,7 +158,7 @@ check_base_class(const std::string& className)
 	}
 
 // 	check that class derives from base class
-	if(boost::is_base_of<TBaseClass, TClass>::value == false)
+	if(std::is_base_of<TBaseClass, TClass>::value == false)
 	{
 		UG_THROW_REGISTRY_ERROR(className,
 		"Trying to register class "<<className

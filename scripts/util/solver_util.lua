@@ -701,7 +701,11 @@ function util.solver.CreateLinearSolver(solverDesc, solverutil)
 		
 	elseif name == "superlu" then
 		linSolver = AgglomeratingSolver(SuperLU());
+
+	elseif string.sub(name, 1, 4) == "amd_" then
+		linSolver = util.amdsolver.create_solver(name, desc)
 	end
+
 
 	util.solver.CondAbort(linSolver == nil, "Invalid linear solver specified: " .. name)
 	
@@ -711,6 +715,8 @@ function util.solver.CreateLinearSolver(solverDesc, solverutil)
 	end
 
 	if createConvCheck == true then
+		-- print(desc)
+		-- print("ø")
 		linSolver:set_convergence_check(
 			util.solver.CreateConvCheck(desc.convCheck or defaults.convCheck, solverutil))
 	end

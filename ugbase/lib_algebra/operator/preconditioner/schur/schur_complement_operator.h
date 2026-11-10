@@ -85,7 +85,8 @@ class SchurComplementOperator
 	SchurComplementOperator(SmartPtr<MatrixOperator<matrix_type, vector_type> > Alocal,
 							SchurSlicingData::slice_desc_type_vector &sdv)
 	: m_spOperator(Alocal),
-	  m_slicing(sdv)
+	  m_slicing(sdv),
+	  m_applyCnt(0)
 	{
 		m_op[0][0] = make_sp(new MatrixOperator<matrix_type, vector_type>());
 		m_op[0][1] = make_sp(new MatrixOperator<matrix_type, vector_type>());

@@ -37,9 +37,8 @@
 #include <list>
 #include <string>
 #include <map>
-#include <boost/function.hpp>
-#include <boost/function_equal.hpp>
-#include <boost/bind.hpp>
+#include <functional> // for std::function
+
 #include "common/assert.h"
 #include "common/util/smart_pointer.h"
 #include "common/util/metaprogramming_util.h"
@@ -86,7 +85,7 @@ class MessageHub
 
 	private:
 	//	private type definitions
-		typedef boost::function<void (const IMessage&)> Callback;
+		typedef std::function<void (const IMessage&)> Callback;
 
 	///	The CallbackEntry holds the actual callback and the associated callback-id.
 	/**	If a MessageHub is destroyed before all callbacks are unregistered, this
@@ -226,7 +225,7 @@ class MessageHub
 	 *
 	 * The callback has to be of the type
 	 *
-	 * <tt>boost::function\<void (const IMessage&)\></tt>
+	 * <tt>std::function\<void (const IMessage&)\></tt>
 	 *
 	 * The method returns a smart-pointer to an callback-identifier.
 	 *
@@ -236,7 +235,7 @@ class MessageHub
 	 */
 		template <class TMsg>
 		SPCallbackId register_callback_impl(
-							   boost::function<void (const IMessage&)> callback,
+							   std::function<void (const IMessage&)> callback,
 							   bool autoFree);
 
 	///	performs unregistration of the given callback

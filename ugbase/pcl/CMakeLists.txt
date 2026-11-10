@@ -32,7 +32,7 @@
 # Parallel Communication Layer
 ################################################
 
-cmake_minimum_required(VERSION 2.8.12...3.27.1)
+cmake_minimum_required(VERSION 2.8.12...4.4)
 
 project(P_PCL)
 
@@ -47,6 +47,7 @@ set(srcPcl	parallel_archive.cpp
 			pcl_multi_group_communicator.cpp
 			pcl_process_communicator.cpp
 			pcl_util.cpp)
+set(HEADERS	space_time_communicator.hpp)
 
 if(BUILD_ONE_LIB)
 	EXPORTSOURCES(ugbase/pcl ${srcPcl})

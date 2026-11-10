@@ -1,0 +1,21 @@
+name: Trigger Gitlab CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+    
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger GitLab pipeline
+        run: |
+          curl --fail --request POST \
+            --form "token=${{ secrets.GITLAB_TRIGGER_TOKEN }}" \
+            --form "ref=main" \
+            "https://gitlab.com/api/v4/projects/${{ secrets.GITLAB_PROJECT_ID }}/trigger/pipeline"

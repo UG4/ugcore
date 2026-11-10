@@ -848,7 +848,7 @@ protected:
 	///	writes a grouping *.pvtu file
 		template <typename TFunction>
 		void write_pvtu(TFunction& u, const std::string&  filename,
-		                int si, int step, number time);
+							int si, int step, number time, const SubsetGroup& ssGrp);
 
 	public:
 	///	writes a grouping *.pvd file, grouping all data from different subsets
