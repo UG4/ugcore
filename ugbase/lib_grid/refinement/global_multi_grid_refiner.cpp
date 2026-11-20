@@ -75,12 +75,14 @@ GlobalMultiGridRefiner::~GlobalMultiGridRefiner()
 		m_pMG->unregister_observer(this);
 }
 
-void GlobalMultiGridRefiner::grid_to_be_destroyed(Grid* grid)
+void GlobalMultiGridRefiner::
+grid_to_be_destroyed(Grid* grid)
 {
 	m_pMG = NULL;
 }
 
-void GlobalMultiGridRefiner::assign_grid(MultiGrid& mg)
+void GlobalMultiGridRefiner::
+assign_grid(MultiGrid& mg)
 {
 	assign_grid(&mg);
 }

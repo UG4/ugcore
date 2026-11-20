@@ -181,6 +181,13 @@ function MiscWriter:eval_integrals(u, step, time)
       local quadOrder = 2
       local sep = IntegralData.sep
       local subsets = IntegralData.subsets
+      local box = IntegralData.box
+      
+      if type(box) == "table" and type(box[1]) == "table" and type(box[2]) == "table" then
+        data = IntervalNumberLinker(data, box[1], box[2])
+      elseif box ~= nil then
+        print("illegal format of integral.box; it is ignored")
+      end
   
       if self.verbose then write(" * Write Integral to '"..filename.."' ... ") end
     
@@ -283,6 +290,9 @@ local function PrepareIntegralData(DataSet, Integrals, file)
       
       -- subsets
       IntegralData.subsets = DataSet.subsets
+      
+      -- box
+      IntegralData.box = DataSet.box
 
       -- create file
       local thefile = io.open (file, "w+")
@@ -572,13 +582,13 @@ function util.Balance(DataToBeWrittenTable)
 		-- Write VTK data.
 		tmpWriterVTK:write_data(u, step, time)
 			
-    -- point evaluators
+    	-- point evaluators
 		integratorsubject:notify_finalize_step(u, step, time, 0)
 
 		-- evaluate Integrals and Fluxes
-	  tmpMiscWriter:eval_integrals(u, step, time)
-	  tmpMiscWriter:eval_fluxes(u, step, time)
-    tmpMiscWriter:eval_functions(u, step, time)
+		tmpMiscWriter:eval_integrals(u, step, time)
+		tmpMiscWriter:eval_fluxes(u, step, time)
+		tmpMiscWriter:eval_functions(u, step, time)
 		
 		if verbose then print(" ******** End   Balancing ********")	end		
 		end	-- function
