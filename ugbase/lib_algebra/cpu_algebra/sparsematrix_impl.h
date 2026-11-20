@@ -33,16 +33,17 @@
 #ifndef __H__UG__CPU_ALGEBRA__SPARSEMATRIX_IMPL__
 #define __H__UG__CPU_ALGEBRA__SPARSEMATRIX_IMPL__
 
-// creation etc
-
+// C++ includes
 #include <fstream>
 #include <cstring>
-
-#include "lib_algebra/common/operations_vec.h"
-#include "common/profiler/profiler.h"
-#include "sparsematrix.h"
 #include <vector>
 #include <algorithm>
+
+// UG4 includes.
+#include "sparsematrix.h"
+#include "sparsematrix_ops.h"
+#include "lib_algebra/common/operations_vec.h"
+#include "common/profiler/profiler.h"
 
 
 
@@ -295,52 +296,7 @@ void SparseMatrix<T>::axpy(vector_t &dest,
 		const number &alpha1, const vector_t &v1,
 		const number &beta1, const vector_t &w1) const
 {
-	PROFILE_SPMATRIX(SparseMatrix_axpy);
-	check_fragmentation();
-	const size_t num_rows = this->num_rows();
-	if(alpha1 == 0.0)
-	{
-		#pragma omp parallel for
-		for(size_t i=0; i < num_rows; i++)
-		{
-			size_t rowIt=rowStart[i];
-			size_t itEnd=rowEnd[i];
-			if(rowIt == itEnd)
-			{
-				dest[i] = 0.0;
-				continue;
-			}
-			MatMult(dest[i], beta1, values[rowIt], w1[cols[rowIt]]);
-			for(++rowIt; rowIt != itEnd; ++rowIt)
-				// res[i] += conn.value() * x[conn.index()];
-				MatMultAdd(dest[i], 1.0, dest[i], beta1, values[rowIt], w1[cols[rowIt]]);
-		}
-	}
-	else if(&dest == &v1)
-	{
-		if(alpha1 != 1.0) {
-			#pragma omp parallel for
-			for(size_t i=0; i < num_rows; i++)
-			{
-				dest[i] *= alpha1;
-				mat_mult_add_row(i, dest[i], beta1, w1);
-			}
-		}
-		else
-			#pragma omp parallel for
-			for(size_t i=0; i < num_rows; i++)
-				mat_mult_add_row(i, dest[i], beta1, w1);
-
-	}
-	else
-	{
-		#pragma omp parallel for
-		for(size_t i=0; i < num_rows; i++)
-		{
-			VecScaleAssign(dest[i], alpha1, v1[i]);
-			mat_mult_add_row(i, dest[i], beta1, w1);
-		}
-	}
+	SparseMatrixAxpy(*this, dest, alpha1, v1, beta1, w1);
 }
 
 // calculate dest = alpha1*v1 + beta1*A^T*w1 (A = this matrix)
@@ -350,29 +306,7 @@ void SparseMatrix<T>::axpy_transposed(vector_t &dest,
 		const number &alpha1, const vector_t &v1,
 		const number &beta1, const vector_t &w1) const
 {
-	PROFILE_SPMATRIX(SparseMatrix_axpy_transposed);
-	check_fragmentation();
-	if(&dest == &v1) {
-		if(alpha1 == 0.0)
-			dest.set(0.0);
-		else if(alpha1 != 1.0)
-			dest *= alpha1;
-	}
-	else if(alpha1 == 0.0)
-		dest.set(0.0);
-	else
-		VecScaleAssign(dest, alpha1, v1);
-
-	#pragma omp parallel for
-	for(size_t i=0; i<num_rows(); i++)
-	{
-
-		size_t itEnd=rowEnd[i];
-		for(size_t rowIt=rowStart[i]; rowIt != itEnd; ++rowIt)
-			// dest[conn.index()] += beta1 * conn.value() * w1[i];
-			if(values[rowIt] != 0.0)
-				MatMultTransposedAdd(dest[cols[rowIt]], 1.0, dest[cols[rowIt]], beta1, values[rowIt], w1[i]);
-	}
+	SparseMatrixAxpyTransposed(*this, dest, alpha1, v1, beta1, w1);
 }
 
 
@@ -402,19 +336,7 @@ void SparseMatrix<T>::apply_transposed_ignore_zero_rows(vector_t &dest,
 template<typename T>
 void SparseMatrix<T>::set(double a)
 {
-	PROFILE_SPMATRIX(SparseMatrix_set);
-	check_fragmentation();
-	for(size_t row=0; row<num_rows(); row++)
-	{
-		row_iterator itEnd = end_row(row);
-		for(row_iterator it = begin_row(row); it != itEnd; ++it)
-		{
-			if(it.index() == row)
-				it.value() = a;
-			else
-				it.value() = 0.0;
-		}
-	}
+	SparseMatrixSet(*this, a);
 }
 
 
@@ -492,13 +414,7 @@ void SparseMatrix<T>::set_as_copy_of(const SparseMatrix<T> &B, double scale)
 template<typename T>
 void SparseMatrix<T>::scale(double d)
 {
-	//PROFILE_SPMATRIX(SparseMatrix_scale);
-	for(size_t i=0; i < num_rows(); i++)
-	{
-		row_iterator itEnd = end_row(i);
-		for(row_iterator it = begin_row(i); it != itEnd; ++it)
-			it.value() *= d;
-	}
+	SparseMatrixScale(*this, d);
 }
 
 

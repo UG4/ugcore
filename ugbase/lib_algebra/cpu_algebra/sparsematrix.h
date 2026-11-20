@@ -34,12 +34,12 @@
 #define __H__UG__CPU_ALGEBRA__SPARSEMATRIX__
 
 #include <math.h>
-#include "common/common.h"
-#include "../algebra_common/sparsematrix_util.h"
 #include <iostream>
 #include <algorithm>
-#include "common/util/ostream_util.h"
 
+#include "common/common.h"
+#include "common/util/ostream_util.h"
+#include "../algebra_common/sparsematrix_util.h"
 #include "../algebra_common/connection.h"
 #include "../algebra_common/matrixrow.h"
 #include "../common/operations_mat/operations_mat.h"
@@ -701,16 +701,17 @@ private:
 		UG_ASSERT(i < rowEnd[row] && i >= rowStart[row], "row iterator row " << row << " pos " << i << " out of bounds [" << rowStart[row] << ", " << rowEnd[row] << "]");
 	}
 #ifdef UG_OPENMP
+// some functions must be public for OpenMP parallelization.
 public:
 #endif
     void assureValuesSize(size_t s);
     size_t get_nnz() const { return nnz; }
+	void check_fragmentation() const;
 
 private:
 	// disallowed operations (not defined):
 	//---------------------------------------
 	SparseMatrix(SparseMatrix&); ///< disallow copy operator
-
 
 protected:
 	int get_index_internal(size_t row, int col) const;
@@ -721,7 +722,6 @@ protected:
     	copyToNewSize(newSize, num_cols());
     }
     void copyToNewSize(size_t newSize, size_t maxCols);
-	void check_fragmentation() const;
 	int get_nnz_max_cols(size_t maxCols);
 
 public: // bug
