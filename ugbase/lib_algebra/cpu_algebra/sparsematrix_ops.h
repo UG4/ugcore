@@ -37,10 +37,55 @@
 #include "../algebra_common/connection.h"
 #include "../algebra_common/matrixrow.h"
 #include "../algebra_common/sparsematrix_util.h"
-#include "../common/operations_mat/operations_mat.h"
+#include "../common/operations_mat/operations_mat.h" // for MatMult, MatMultAdd, MatMultTransposedAdd
+
 
 namespace ug
 {
+
+/**
+ * \brief Sets all diagonal entries to a and all off-diagonal entries to zero.
+ *
+ * @param A Sparse matrix to modify.
+ * @param a Value assigned to diagonal entries.
+ */
+template<typename T>
+void SparseMatrixSet(SparseMatrix<T> &A, double a)
+{
+	PROFILE_SPMATRIX(SparseMatrix_set);
+	A.check_fragmentation();
+
+    const size_t num_rows = A.num_rows();
+    
+    #pragma omp parallel for
+	for(size_t row = 0; row < num_rows; ++row)
+	{
+		auto itEnd = A.end_row(row);
+		for(auto it = A.begin_row(row); it != itEnd; ++it)
+		{   
+            it.value() = (it.index() == row) ? a : 0.0;
+		}
+	}
+}
+
+/**
+ * \brief Scales all entries of a sparse matrix by d.
+ *
+ * @param A Sparse matrix to modify.
+ * @param d Scaling factor.
+ */
+template<typename T>
+void SparseMatrixScale(SparseMatrix<T> &A, double d)
+{
+    const size_t num_rows = A.num_rows();
+    #pragma omp parallel for
+	for(size_t row = 0; row < num_rows; ++row)
+	{
+		auto itEnd = A.end_row(row);
+		for(auto it = A.begin_row(row); it != itEnd; ++it)
+			it.value() *= d;
+	}
+}
 
 /**
  * \brief Calculates dest = alpha1*v1 + beta1*A*w1.
@@ -54,8 +99,8 @@ namespace ug
  */
 template<typename T, typename vector_t>
 void SparseMatrixAxpy(const SparseMatrix<T> &A, vector_t &dest,
-		const typename SparseMatrix<T>::value_type &alpha1, const vector_t &v1,
-		const typename SparseMatrix<T>::value_type &beta1, const vector_t &w1)
+		const number &alpha1, const vector_t &v1,
+		const number &beta1, const vector_t &w1)
 {
 	PROFILE_SPMATRIX(SparseMatrix_axpy);
 	A.check_fragmentation();
@@ -117,8 +162,8 @@ void SparseMatrixAxpy(const SparseMatrix<T> &A, vector_t &dest,
  */
 template<typename T, typename vector_t>
 void SparseMatrixAxpyTransposed(const SparseMatrix<T> &A, vector_t &dest,
-		const typename SparseMatrix<T>::value_type &alpha1, const vector_t &v1,
-		const typename SparseMatrix<T>::value_type &beta1, const vector_t &w1)
+		const number &alpha1, const vector_t &v1,
+		const number &beta1, const vector_t &w1)
 {
 	PROFILE_SPMATRIX(SparseMatrix_axpy_transposed);
 	A.check_fragmentation();
@@ -147,49 +192,7 @@ void SparseMatrixAxpyTransposed(const SparseMatrix<T> &A, vector_t &dest,
 	}
 }
 
-/**
- * \brief Sets all diagonal entries to a and all off-diagonal entries to zero.
- *
- * @param A Sparse matrix to modify.
- * @param a Value assigned to diagonal entries.
- */
-template<typename T>
-void SparseMatrixSet(SparseMatrix<T> &A, double a)
-{
-	PROFILE_SPMATRIX(SparseMatrix_set);
-	A.check_fragmentation();
 
-    const size_t num_rows = A.num_rows();
-    
-    #pragma omp parallel for
-	for(size_t row = 0; row < num_rows; ++row)
-	{
-		auto itEnd = A.end_row(row);
-		for(auto it = A.begin_row(row); it != itEnd; ++it)
-		{   
-            it.value() = (it.index() == row) ? a : 0.0;
-		}
-	}
-}
-
-/**
- * \brief Scales all entries of a sparse matrix by d.
- *
- * @param A Sparse matrix to modify.
- * @param d Scaling factor.
- */
-template<typename T>
-void SparseMatrixScale(SparseMatrix<T> &A, double d)
-{
-    const size_t num_rows = A.num_rows();
-    #pragma omp parallel for
-	for(size_t row = 0; row < num_rows; ++row)
-	{
-		auto itEnd = A.end_row(row);
-		for(auto it = A.begin_row(row); it != itEnd; ++it)
-			it.value() *= d;
-	}
-}
 
 } // namespace ug
 
