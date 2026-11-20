@@ -57,7 +57,7 @@ void SparseMatrixSet(SparseMatrix<T> &A, double a)
 
     const size_t num_rows = A.num_rows();
     
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(static) 
 	for(size_t row = 0; row < num_rows; ++row)
 	{
 		auto itEnd = A.end_row(row);
@@ -78,7 +78,7 @@ template<typename T>
 void SparseMatrixScale(SparseMatrix<T> &A, double d)
 {
     const size_t num_rows = A.num_rows();
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(static) 
 	for(size_t row = 0; row < num_rows; ++row)
 	{
 		auto itEnd = A.end_row(row);
@@ -108,7 +108,7 @@ void SparseMatrixAxpy(const SparseMatrix<T> &A, vector_t &dest,
 	const size_t num_rows = A.num_rows();
 	if(alpha1 == 0.0)
 	{
-		#pragma omp parallel for
+		#pragma omp parallel for schedule(static)
 		for(size_t i = 0; i < num_rows; ++i)
 		{
 			auto itEnd = A.end_row(i);
@@ -126,11 +126,11 @@ void SparseMatrixAxpy(const SparseMatrix<T> &A, vector_t &dest,
 	}
 	else if(&dest == &v1)
 	{
-		#pragma omp parallel for
+		#pragma omp parallel for schedule(static) 
 		for(size_t i = 0; i < num_rows; ++i)
 		{
-			if(alpha1 != 1.0)
-				dest[i] *= alpha1;
+			// if(alpha1 != 1.0)
+			dest[i] *= alpha1;
 
 			auto itEnd = A.end_row(i);
 			for(auto it = A.begin_row(i); it != itEnd; ++it)
@@ -139,7 +139,7 @@ void SparseMatrixAxpy(const SparseMatrix<T> &A, vector_t &dest,
 	}
 	else
 	{
-		#pragma omp parallel for
+		#pragma omp parallel for schedule(static) 
 		for(size_t i = 0; i < num_rows; ++i)
 		{
 			VecScaleAssign(dest[i], alpha1, v1[i]);
@@ -180,7 +180,7 @@ void SparseMatrixAxpyTransposed(const SparseMatrix<T> &A, vector_t &dest,
 	else
 		VecScaleAssign(dest, alpha1, v1);
 
-	#pragma omp parallel for
+	#pragma omp parallel for schedule(static) 
 	for(size_t i = 0; i < A.num_rows(); ++i)
 	{
 		auto itEnd = A.end_row(i);

@@ -756,7 +756,7 @@ public:
 #endif
 };
 
-
+// Default matrix algebra type traits for SparseMatrix<T> is to use row functions.
 template<typename T>
 struct matrix_algebra_type_traits<SparseMatrix<T> >
 {
@@ -764,6 +764,18 @@ struct matrix_algebra_type_traits<SparseMatrix<T> >
 		type=MATRIX_USE_ROW_FUNCTIONS
 	};
 };
+
+// For double, we can use the operator overloads.
+
+/*
+template<>
+struct matrix_algebra_type_traits<SparseMatrix<double> >
+{
+	enum{
+		type=MATRIX_USE_OPERATORS
+	};
+};
+*/
 
 //! calculates dest = alpha1*v1 + beta1 * A1^T *w1;
 template<typename vector_t, typename matrix_t>

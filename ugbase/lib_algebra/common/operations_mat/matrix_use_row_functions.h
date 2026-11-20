@@ -39,9 +39,9 @@ namespace ug
 template<typename vector_t, typename matrix_t>
 struct mat_operations_class<vector_t, matrix_t, MATRIX_USE_ROW_FUNCTIONS>
 {
-	//! calculates dest = beta1 * A1;
+	//! calculates dest = beta1 * A1 *w1;
 	static inline bool MatMult(vector_t &dest,
-			const number &beta1, const matrix_t &A1, const vector_t &w1)
+			const number &beta1, const matrix_t &A1, const vector_t &w1) 
 	{
 		for(size_t i=0; i<dest.size(); i++)
 		{

@@ -37,17 +37,27 @@ IF(OPENMP)
   IF (OpenMP_FOUND)
     ADD_DEFINITIONS(-DUG_OPENMP)
     add_compile_options(${OpenMP_CXX_FLAGS})
-   
+    add_compile_options("-mcpu=native") 
+    #add_compile_options("-Rpass=loop-vectorize")
+    #add_compile_options("-Rpass-missed=loop-vectorize")
+    #add_compile_options("-Rpass-analysis=loop-vectorize")
+
+    MESSAGE(STATUS "OpenMP BEGIN ########################################")
     MESSAGE(STATUS "Info: Using OpenMP (from CMake)")
+    MESSAGE(STATUS "Info: ${OpenMP_CXX_FLAGS}")
     MESSAGE(STATUS "Info:OpenMP_CXX_LIB_NAMES ${OpenMP_CXX_LIB_NAMES} ${OpenMP_CXX_LIBRARIES}")
     SET(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} ${OpenMP_CXX_LIBRARIES}")
     SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${OpenMP_CXX_LIBRARIES}")
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_CXX_LIBRARIES}")
+    
 
     # SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_CXX_LIB_NAMES} -L${OpenMP_CXX_LIBRARIES}")
     # target_link_libraries(libug4 PUBLIC OpenMP::OpenMP_CXX)
-  ELSE (OpenMP_FOUND)
+  MESSAGE(STATUS "OpenMP END ########################################")
+
+    ELSE (OpenMP_FOUND)
     MESSAGE(WARNING "OpenMP was not found!")
   ENDIF (OpenMP_FOUND)
+
 
 ENDIF(OPENMP)

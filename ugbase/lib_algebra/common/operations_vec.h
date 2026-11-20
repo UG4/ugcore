@@ -43,7 +43,7 @@
 namespace ug
 {
 
-// operations for doubles
+// operations for doubles (end of recursion)
 //-----------------------------------------------------------------------------
 // todo: check if we might replace double with template<T>
 
@@ -90,19 +90,7 @@ inline void VecProdAdd(const double &a, const double &b, double &s)
 	s += a*b;
 }
 
-template<typename vector_t>
-inline void VecProdAdd(const vector_t &a, const vector_t &b, double &s)
-{
-	// was: #pragma omp simd reduction(+:s)
-	const size_t N= a.size();
-	// #pragma omp parallel for simd shared(a,b,N) schedule(static) reduction(+:s)
-	for(size_t i=0; i<N; i++)
-	{
-		double dot=0.0;
-		VecProdAdd(a[i], b[i], dot);
-		s += dot;
-	}
-}
+
 
 
 //! returns scal<a, b>
@@ -186,38 +174,14 @@ inline void VecAssign(vector_t &dest, const vector_t &v1)
 //! calculates dest = alpha1*v1 + alpha2*v2
 template <int N>
 inline void VecScaleAdd(DenseVector<FixedArray1<double, N>> &dest,
-			double alpha1, const DenseVector<FixedArray1<double, 2>> &v1,
-			double alpha2, const DenseVector<FixedArray1<double, 2>> &v2)
+			double alpha1, const DenseVector<FixedArray1<double, N>> &v1,
+			double alpha2, const DenseVector<FixedArray1<double, N>> &v2)
 {
-	// #pragma unroll N
+	#pragma unroll
 	for (size_t i = 0; i<N; ++i)
 	{ dest[i] = alpha1*v1[i] + alpha2*v2[i]; }
 }
 
-//! calculates dest = alpha1*v1 + alpha2*v2
-/*inline void VecScaleAdd(DenseVector<FixedArray1<double, 3>> &dest,
-			double alpha1, const DenseVector<FixedArray1<double, 3>> &v1,
-			double alpha2, const DenseVector<FixedArray1<double, 3>> &v2)
-{
-	dest[0] = alpha1*v1[0] + alpha2*v2[0];
-	dest[1] = alpha1*v1[1] + alpha2*v2[1];
-	dest[2] = alpha1*v1[2] + alpha2*v2[2];
-}
-
-//! calculates dest = alpha1*v1 + alpha2*v2
-inline void VecScaleAdd(DenseVector<FixedArray1<double, 4>> &dest,
-			double alpha1, const DenseVector<FixedArray1<double, 4>> &v1,
-			double alpha2, const DenseVector<FixedArray1<double, 4>> &v2)
-{
-
-	dest[0] = alpha1*v1[0] + alpha2*v2[0];
-	dest[1] = alpha1*v1[1] + alpha2*v2[1];
-	dest[2] = alpha1*v1[2] + alpha2*v2[2];
-	dest[3] = alpha1*v1[3] + alpha2*v2[3];
-
-}
-
-*/
 
 //! calculates dest = alpha1*v1 + dest
 template<typename vector_t, template <class T> class TE_VEC>
@@ -259,6 +223,23 @@ inline void VecProd(const vector_t &a, const vector_t &b, double &sum)
 		// double dot = 0.0;
 		VecProdAdd(a[i], b[i], sum);
 		// sum +=dot;
+	}
+}
+
+
+
+//! calculates s += <a, b>
+template<typename vector_t>
+inline void VecProdAdd(const vector_t &a, const vector_t &b, double &s)
+{
+	// was: #pragma omp simd reduction(+:s)
+	const size_t N= a.size();
+	// #pragma omp parallel for simd shared(a,b,N) schedule(static) reduction(+:s)
+	for(size_t i=0; i<N; i++)
+	{
+		double dot=0.0;
+		VecProdAdd(a[i], b[i], dot);
+		s += dot;
 	}
 }
 
