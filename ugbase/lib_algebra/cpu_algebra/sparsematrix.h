@@ -202,7 +202,8 @@ public:
 		template<typename Vector_type>
 		bool matmul_minus(Vector_type &res, const Vector_type &x) const
 		{
-			axpy(res, 1.0, res, -1.0, x);
+			// axpy(res, 1.0, res, -1.0, x);
+			SparseMatrix_MultiplySubtract(*this, res, x);
 			return true;
 		}
 

@@ -43,6 +43,25 @@
 namespace ug
 {
 
+
+ //! This is an abstract row loop.
+template<typename T, typename TAtomic>
+void SparseMatrix_RowLoop(const SparseMatrix<T> &A, TAtomic &myatomic)
+{
+  	const size_t num_rows = A.num_rows();
+	
+    #pragma omp parallel for schedule(static) 
+	for(size_t i = 0; i < num_rows; ++i)
+	{
+		auto itEnd = A.end_row(i);
+		for(auto it = A.begin_row(i); it != itEnd; ++it)
+        {
+			myatomic(i, it.index(), it.value());
+        }
+	}
+}    
+
+
 /**
  * \brief Sets all diagonal entries to a and all off-diagonal entries to zero.
  *
@@ -55,7 +74,10 @@ void SparseMatrixSet(SparseMatrix<T> &A, double a)
 	PROFILE_SPMATRIX(SparseMatrix_set);
 	A.check_fragmentation();
 
-    const size_t num_rows = A.num_rows();
+
+    auto set_aI = [&](size_t i, size_t j, const T& value_ij) {  value_ij = (i==j) ? a : 0; };  
+    SparseMatrix_RowLoop(A, set_aI);
+    /*const size_t num_rows = A.num_rows();
     
     #pragma omp parallel for schedule(static) 
 	for(size_t row = 0; row < num_rows; ++row)
@@ -66,6 +88,7 @@ void SparseMatrixSet(SparseMatrix<T> &A, double a)
             it.value() = (it.index() == row) ? a : 0.0;
 		}
 	}
+        */
 }
 
 /**
@@ -86,6 +109,50 @@ void SparseMatrixScale(SparseMatrix<T> &A, double d)
 			it.value() *= d;
 	}
 }
+
+
+
+template<typename T>
+struct BlockTraits
+{
+    using codomain_vector_type = typename SparseMatrix<T>::value_type;
+    using domain_vector_type = typename SparseMatrix<T>::value_type;
+};
+
+// Partial specialization for DenseMatrix<FixedArray2<double, N, N>>
+template<int M, int N>
+struct BlockTraits<ug::DenseMatrix<ug::FixedArray2<double, M, N>>> 
+{
+    using codomain_vector_type = ug::DenseVector<ug::FixedArray1<double, M>>;
+    using domain_vector_type = ug::DenseVector<ug::FixedArray1<double, N>>;  
+};  
+
+
+
+template<typename M, typename V> 
+inline void MVMultSub(V& yi, const M& Aij, const V& xj) { yi -= Aij * xj;}
+
+template<> 
+inline void MVMultSub(double& bi, const double& Aij, const double& xj) { bi =std::fma(-Aij, xj, bi); } 
+
+
+/**
+ * \brief Calculates y = y - A*x.
+ *
+ * @param A Sparse matrix A.
+ * @param y Destination vector.
+ * @param x Input vector for the matrix-vector multiplication.
+ */
+
+template<typename T, typename vector_t>
+void SparseMatrix_MultiplySubtract(const SparseMatrix<T> &A, vector_t &y, const vector_t &x)
+{
+    PROFILE_SPMATRIX(SparseMatrix_MultiplySubtract);
+	A.check_fragmentation();
+
+    auto myatomic = [&](size_t i, size_t j, const T& value_ij) {MVMultSub(y[i], value_ij, x[j]);};  
+	SparseMatrix_RowLoop(A, myatomic);
+}        
 
 /**
  * \brief Calculates dest = alpha1*v1 + beta1*A*w1.

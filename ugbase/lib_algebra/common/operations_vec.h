@@ -34,7 +34,7 @@
 #define __H__UG__LIB_ALGEBRA__OPERATIONS_VEC__
 
 #include <stddef.h> // size_t
-#include <cmath> // log, exp
+#include <cmath> // log, exp, fma
 
 #include "../small_algebra/storage/fixed_array.h"
 #include "../small_algebra/small_matrix/densevector.h"
@@ -51,34 +51,39 @@ namespace ug
 
 //! calculates dest = alpha1*v1. for doubles
 inline void VecScaleAssign(double &dest, double alpha1, const double &v1)
-{
-	dest = alpha1*v1;
+{ 
+	dest = alpha1*v1; 
 }
 
 
-//! calculates dest = alpha1*v1 + dest for doubles (FMA?)
+//! calculates dest = alpha1*v1 + dest for doubles 
 inline void VecScaleAdd(double &dest, double alpha1, const double &v1)
 {
-
-	//#ifdef FP_FAST_FMA
-	//			y[i] =std::fma(alpha, x[i], y[i]);
-	//#else
-	dest = alpha1*v1 + dest;
+	#ifdef FP_FAST_FMA
+		dest =std::fma(alpha1, v1, dest);
+	#else
+		dest = alpha1*v1 + dest;
+	#endif
 }
 
 //! calculates dest = alpha1*v1 + alpha2*v2. for doubles
 inline void VecScaleAdd(double &dest, double alpha1, const double &v1, double alpha2, const double &v2)
 {
-	//#ifdef FP_FAST_FMA
-	//			dest[i] = std::fma(alpha1, v1[i], alpha2 *v2[i]);
-	//#else
-	dest = alpha1*v1 + alpha2*v2;
+	#ifdef FP_FAST_FMA
+		dest = std::fma(alpha1, v1, alpha2 *v2);
+	#else
+		dest = alpha1*v1 + alpha2*v2;
+	#endif
 }
 
 //! calculates dest = alpha1*v1 + alpha2*v2 + alpha3*v3. for doubles
 inline void VecScaleAdd(double &dest, double alpha1, const double &v1, double alpha2, const double &v2, double alpha3, const double &v3)
 {
-	dest = alpha1*v1 + alpha2*v2 + alpha3*v3;
+	#ifdef FP_FAST_FMA
+		dest = std::fma(alpha1, v1, std::fma(alpha2, v2, alpha3 *v3));
+	#else
+		dest = alpha1*v1 + alpha2*v2 + alpha3*v3;
+	#endif
 }
 
 
@@ -89,8 +94,6 @@ inline void VecProdAdd(const double &a, const double &b, double &s)
 {
 	s += a*b;
 }
-
-
 
 
 //! returns scal<a, b>
@@ -118,7 +121,11 @@ inline double VecNormSquared(const double &a)
 //! calculates s += norm_2^2(a)
 inline void VecNormSquaredAdd(const double &a, double &s)
 {
-	s += a*a;
+	#ifdef FP_FAST_FMA
+		s = std::fma(a, a, s);
+	#else
+		s += a*a;
+	#endif
 }
 
 // Elementwise (Hadamard) product of two vectors
@@ -152,15 +159,6 @@ inline void VecLog(double &dest, const double &v)
 // todo: change vector_t to TE_VEC<vector_t>
 
 
-// VecScale: These function calculate dest = sum_i alpha_i v_i
-
-//! calculates dest = alpha1*v1
-template<typename vector_t>
-inline void VecScaleAssign(vector_t &dest, double alpha1, const vector_t &v1)
-{
-	for(size_t i=0; i<dest.size(); i++)
-		VecScaleAssign(dest[i], alpha1, v1[i]);
-}
 
 //! sets dest = v1 entrywise
 template<typename vector_t>
@@ -170,9 +168,16 @@ inline void VecAssign(vector_t &dest, const vector_t &v1)
 		dest[i] = v1[i];
 }
 
+//! calculates dest = alpha1*v1
+template<typename vector_t>
+inline void VecScaleAssign(vector_t &dest, double alpha1, const vector_t &v1)
+{
+	for(size_t i=0; i<dest.size(); i++)
+		VecScaleAssign(dest[i], alpha1, v1[i]);
+}
 
 //! calculates dest = alpha1*v1 + alpha2*v2
-template <int N>
+/*template <int N>
 inline void VecScaleAdd(DenseVector<FixedArray1<double, N>> &dest,
 			double alpha1, const DenseVector<FixedArray1<double, N>> &v1,
 			double alpha2, const DenseVector<FixedArray1<double, N>> &v2)
@@ -182,12 +187,11 @@ inline void VecScaleAdd(DenseVector<FixedArray1<double, N>> &dest,
 	{ dest[i] = alpha1*v1[i] + alpha2*v2[i]; }
 }
 
-
+*/
 //! calculates dest = alpha1*v1 + dest
 template<typename vector_t, template <class T> class TE_VEC>
 inline void VecScaleAdd(TE_VEC<vector_t> &dest, double alpha1, const TE_VEC<vector_t> &v1)
 {
-	// #pragma omp parallel for simd
 	for(size_t i=0; i<dest.size(); i++)
 		VecScaleAdd(dest[i], alpha1, v1[i]);
 }
@@ -196,7 +200,6 @@ inline void VecScaleAdd(TE_VEC<vector_t> &dest, double alpha1, const TE_VEC<vect
 template<typename vector_t, template <class T> class TE_VEC>
 inline void VecScaleAdd(TE_VEC<vector_t> &dest, double alpha1, const TE_VEC<vector_t> &v1, double alpha2, const TE_VEC<vector_t> &v2)
 {
-	// #pragma omp parallel for simd
 	for(size_t i=0; i<dest.size(); i++)
 		VecScaleAdd(dest[i], alpha1, v1[i], alpha2, v2[i]);
 }
@@ -213,7 +216,7 @@ inline void VecScaleAdd(TE_VEC<vector_t> &dest, double alpha1, const TE_VEC<vect
 // VecProd
 
 //! calculates s += scal<a, b>
-template<typename vector_t>
+/*template<typename vector_t>
 inline void VecProd(const vector_t &a, const vector_t &b, double &sum)
 {
 	// was: #pragma omp simd reduction(+:sum)
@@ -225,7 +228,7 @@ inline void VecProd(const vector_t &a, const vector_t &b, double &sum)
 		// sum +=dot;
 	}
 }
-
+*/
 
 
 //! calculates s += <a, b>
@@ -261,9 +264,7 @@ inline void VecNormSquaredAdd(const vector_t &a, double &sum)
 	// #pragma omp parallel for simd shared(a) reduction(+:sum)
 	for(size_t i=0; i<N; i++)
 	{
-		// double norm2=0.0;
 		VecNormSquaredAdd(a[i], sum);
-		// sum +=norm2;
 	}
 }
 

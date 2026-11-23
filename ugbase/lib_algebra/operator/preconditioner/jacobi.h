@@ -230,7 +230,7 @@ class Jacobi : public IPreconditioner<TAlgebra>
 		// 	multiply defect with diagonal, c = damp * D^{-1} * d
 		//	note, that the damping is already included in the inverse diagonal
 
-			#pragma omp parallel for simd
+			#pragma omp parallel for simd schedule(static)
 			for(size_t i = 0; i < n; ++i)
 			{
 			// 	c[i] = m_diagInv[i] * d[i];
