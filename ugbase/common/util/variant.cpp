@@ -32,10 +32,9 @@
 
 #include "common/error.h"
 #include "variant.h"
+#include "trace.h"
 
 #include <iostream>
-#define untested() ( std::cerr <<  "@@#\n@@@:"<< __FILE__ << ":"<< __LINE__ \
-          <<":" << __func__ << "\n" )
 
 using namespace std;
 

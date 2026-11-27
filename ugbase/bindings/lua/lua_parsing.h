@@ -175,7 +175,6 @@ struct LuaParsing<LuaTableHandle>{
 	}
 	static LuaTableHandle get(lua_State* L, int index){
 		LuaTableHandle tmp(L, index);
-		untested();
 		return tmp;
 	}
 	static void push(lua_State* L, LuaTableHandle data){

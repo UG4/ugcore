@@ -36,6 +36,7 @@
 #include "common/common.h"
 #include "common/util/smart_pointer.h"
 #include "common/util/variant.h"
+#include "common/util/trace.h"
 #ifdef UG_FOR_LUA
 #include "bindings/lua/lua_function_handle.h"
 #endif
@@ -44,8 +45,6 @@
 #define __H__UG_BRIDGE__PARAMETER_STACK__
 
 #include <iostream>
-#define untested() ( std::cerr <<  "@@#\n@@@:"<< __FILE__ << ":"<< __LINE__ \
-          <<":" << __func__ << "\n" )
 
 namespace ug
 {
