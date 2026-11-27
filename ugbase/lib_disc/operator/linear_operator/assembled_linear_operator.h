@@ -103,6 +103,9 @@ class AssembledLinearOperator :
 	///	initializes the operator and assembles the passed rhs vector
 		void init_op_and_rhs(vector_type& b);
 
+	///	initializes the operator and assembles the passed rhs vector
+		void init_op_and_rhs(vector_type& b, const vector_type& u);
+
 	///	compute d = J(u)*c (here, J(u) is a Matrix)
 		virtual void apply(vector_type& d, const vector_type& c);
 

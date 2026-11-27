@@ -129,9 +129,9 @@ class DomainDiscretizationBase
 		{assemble_defect(d, u, dd(gl));}
 
 	/// \copydoc IAssemble::assemble_linear()
-		virtual void assemble_linear(matrix_type& A, vector_type& b, ConstSmartPtr<DoFDistribution> dd);
-		virtual void assemble_linear(matrix_type& mat, vector_type& rhs, const GridLevel& gl)
-		{assemble_linear(mat, rhs, dd(gl));}
+		virtual void assemble_linear(matrix_type& A, vector_type& b, const vector_type& u, ConstSmartPtr<DoFDistribution> dd);
+		virtual void assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const GridLevel& gl)
+		{assemble_linear(mat, rhs, u, dd(gl));}
 
 	/// \copydoc IAssemble::assemble_rhs()
 		virtual void assemble_rhs(vector_type& rhs, const vector_type& u, ConstSmartPtr<DoFDistribution> dd);
@@ -158,7 +158,14 @@ class DomainDiscretizationBase
 		{assemble_defect(d, u, u.dof_distribution());}
 
 		void assemble_linear(matrix_type& A, GridFunction<TDomain, TAlgebra>& rhs)
-		{assemble_linear(A, rhs, rhs.dof_distribution());}
+		{
+			UG_LOGN("HINT: assemble_linear without passing a solution is deprecated.\n"
+					"      Please provide the solution as it will enter the solver as third argument.");
+			assemble_linear(A, rhs, rhs, rhs.dof_distribution());
+		}
+
+		void assemble_linear(matrix_type& A, GridFunction<TDomain, TAlgebra>& rhs, const GridFunction<TDomain, TAlgebra>& u)
+		{assemble_linear(A, rhs, u, rhs.dof_distribution());}
 
 		void assemble_rhs(vector_type& rhs, GridFunction<TDomain, TAlgebra>& u)
 		{assemble_rhs(rhs, u, u.dof_distribution());}

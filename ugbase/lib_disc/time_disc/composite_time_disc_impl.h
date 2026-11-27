@@ -157,19 +157,20 @@ void CompositeTimeDiscretization<TAlgebra>::assemble_linear
 (
 	matrix_type& A,
 	vector_type& b,
+	const vector_type& u,
 	const GridLevel& gl
 )
 {
 	UG_COND_THROW(!m_vTimeDisc.size(),
 		"At least one time disc must be added to CompositeTimeDiscretization.")
 
-	m_vTimeDisc[0]->assemble_linear(A, b, gl);
+	m_vTimeDisc[0]->assemble_linear(A, b, u, gl);
 	for (size_t i = 1; i < m_vTimeDisc.size(); ++i)
 	{
 		// avoid clearing of the matrix before assembling
 		m_vTimeDisc[i]->domain_disc()->ass_tuner()->disable_clear_on_resize();
 
-		m_vTimeDisc[i]->assemble_linear(A, b, gl);
+		m_vTimeDisc[i]->assemble_linear(A, b, u, gl);
 	}
 }
 

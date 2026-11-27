@@ -203,7 +203,7 @@ class DirichletBoundary
 									   number time = 0.0);
 
 	///	sets unity rows in A and dirichlet values in right-hand side b
-		void adjust_linear(matrix_type& A, vector_type& b,
+		void adjust_linear(matrix_type& A, vector_type& b, const vector_type& u,
 		                   ConstSmartPtr<DoFDistribution> dd, int type, number time = 0.0);
 
 	///	sets the dirichlet value in the right-hand side

@@ -834,7 +834,7 @@ AssembleDefect( const std::vector<IElemDisc<domain_type>*>& vElemDisc,
 ///////////////////////////////////////////////////////////////////////////////
 template <typename TDomain, typename TAlgebra, typename TGlobAssembler>
 void DomainDiscretizationBase<TDomain, TAlgebra, TGlobAssembler>::
-assemble_linear(matrix_type& mat, vector_type& rhs,
+assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u,
                 ConstSmartPtr<DoFDistribution> dd)
 {
 	PROFILE_FUNC_GROUP("discretization");
@@ -933,7 +933,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_vConstraint[i]->set_ass_tuner(m_spAssTuner);
-				m_vConstraint[i]->adjust_linear(mat, rhs, dd, type);
+				m_vConstraint[i]->adjust_linear(mat, rhs, u, dd, type);
 			}
 	}
 	post_assemble_loop(m_vElemDisc);
@@ -1839,7 +1839,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs,
 			if(m_vConstraint[i]->type() & type)
 			{
 				m_vConstraint[i]->set_ass_tuner(m_spAssTuner);
-				m_vConstraint[i]->adjust_linear(mat, rhs, dd, type, vSol->time(0));
+				m_vConstraint[i]->adjust_linear(mat, rhs, *vSol->latest(), dd, type, vSol->time(0));
 			}
 	}
 	} UG_CATCH_THROW("Cannot adjust linear.");

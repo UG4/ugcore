@@ -88,12 +88,33 @@ AssembledLinearOperator<TAlgebra>::init_op_and_rhs(vector_type& b)
 {
 //	todo: check that assembling is linear
 
+	UG_LOGN("Hint: init_op_and_rhs without solution vector is deprecated.\n"
+		"Supply the solution vector (as it will enter the solver) as second argument.");
+
 	if(m_spAss.invalid())
 		UG_THROW("AssembledLinearOperator: Assembling routine not set.");
 
 //	assemble matrix and rhs in one loop
 	try{
 		m_spAss->assemble_linear(*this, b, m_gridLevel);
+	}
+	UG_CATCH_THROW("AssembledLinearOperator::init_op_and_rhs:"
+						" Cannot assemble Matrix and Rhs.");
+}
+
+//	Initialize the operator
+template <typename TAlgebra>
+void
+AssembledLinearOperator<TAlgebra>::init_op_and_rhs(vector_type& b, const vector_type& u)
+{
+//	todo: check that assembling is linear
+
+	if(m_spAss.invalid())
+		UG_THROW("AssembledLinearOperator: Assembling routine not set.");
+
+//	assemble matrix and rhs in one loop
+	try{
+		m_spAss->assemble_linear(*this, b, u, m_gridLevel);
 	}
 	UG_CATCH_THROW("AssembledLinearOperator::init_op_and_rhs:"
 						" Cannot assemble Matrix and Rhs.");
@@ -170,18 +191,18 @@ void AssembleLinearOperatorRhsAndSolution
 {
 	ASS_PROFILE_BEGIN(ASS_AssembleLinearOperatorRhsAndSolution);
 
-//	initialize operator
-	ASS_PROFILE_BEGIN(ASS_InitOperatorAndRhs);
-	try{
-		op.init_op_and_rhs(b);
-	}UG_CATCH_THROW("Cannot init the operator (assembling failed).");
-	ASS_PROFILE_END();
-
 //	sets the dirichlet values in the solution
 	ASS_PROFILE_BEGIN(ASS_SetDirValues);
 	try{
 		op.set_dirichlet_values(u);
 	} UG_CATCH_THROW("Cannot set the dirichlet values in the solution.");
+	ASS_PROFILE_END();
+
+//	initialize operator
+	ASS_PROFILE_BEGIN(ASS_InitOperatorAndRhs);
+	try{
+		op.init_op_and_rhs(b, u);
+	}UG_CATCH_THROW("Cannot init the operator (assembling failed).");
 	ASS_PROFILE_END();
 
 	ASS_PROFILE_END();

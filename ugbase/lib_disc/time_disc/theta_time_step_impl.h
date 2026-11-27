@@ -181,7 +181,7 @@ adjust_solution(vector_type& u, const GridLevel& gl)
 
 template <typename TAlgebra>
 void MultiStepTimeDiscretization<TAlgebra>::
-assemble_linear(matrix_type& A, vector_type& b, const GridLevel& gl)
+assemble_linear(matrix_type& A, vector_type& b, const vector_type& u, const GridLevel& gl)
 {
 	PROFILE_BEGIN_GROUP(MultiStepTimeDiscretization_assemble_linear, "discretization MultiStepTimeDiscretization");
 //	perform checks
@@ -705,7 +705,7 @@ adjust_solution(vector_type& u, const GridLevel& gl)
 
 template <typename TAlgebra>
 void SDIRK<TAlgebra>::
-assemble_linear(matrix_type& A, vector_type& b, const GridLevel& gl)
+assemble_linear(matrix_type& A, vector_type& b, const vector_type& u, const GridLevel& gl)
 {
 	UG_THROW("Not implemented")
 }

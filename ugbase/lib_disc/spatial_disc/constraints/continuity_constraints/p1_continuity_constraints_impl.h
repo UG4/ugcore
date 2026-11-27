@@ -38,43 +38,19 @@
 
 namespace ug {
 
-///	sets a matrix row corresponding to averaging the constrained index
 template <typename TMatrix>
-void SetInterpolation(TMatrix& A,
-                      std::vector<size_t> & constrainedIndex,
-                      std::vector<std::vector<size_t> >& vConstrainingIndex,
-					  bool assembleLinearProblem = true)
+static void setConstrainedRow
+(
+	TMatrix& J,
+	size_t constrdInd,
+	const std::vector<size_t>& vConstrgInd
+)
 {
-	//typedef typename TMatrix::row_iterator row_iterator;
-	//typedef typename TMatrix::value_type block_type;
-
-	//	check number of indices passed
-	for(size_t i = 0; i < vConstrainingIndex.size(); ++i)
-		UG_ASSERT(vConstrainingIndex[i].size() == constrainedIndex.size(),
-				  "Wrong number of indices.");
-
-//	loop all constrained dofs
-	for(size_t i = 0; i < constrainedIndex.size(); ++i)
-	{
-		const size_t ai = constrainedIndex[i];
-
-	//	remove all couplings
-		SetRow(A, ai, 0.0);
-
-	//	set diag of row to identity
-		A(ai, ai) = 1.0;
-
-	//	set coupling to all constraining dofs the inverse of the
-	//	number of constraining dofs
-	//	This is only required if assembling for a linear problem.
-		if (assembleLinearProblem)
-		{
-			const number frac = -1.0/(vConstrainingIndex.size());
-			for(size_t j=0; j < vConstrainingIndex.size(); ++j)
-				A(ai, vConstrainingIndex[j][i]) = frac;
-		}
-	}
+	// set a unity row
+	SetRow(J, constrdInd, 0.0);
+	J(constrdInd, constrdInd) = 1.0;
 }
+
 
 template <typename TVector>
 void InterpolateValues(TVector& u,
@@ -108,163 +84,6 @@ void InterpolateValues(TVector& u,
 }
 
 
-
-template <typename TMatrix>
-void SplitAddRow_Symmetric(TMatrix& A,
-                           std::vector<size_t>& constrainedIndex,
-                           std::vector<std::vector<size_t> >& vConstrainingIndex)
-{
-	typedef typename TMatrix::value_type block_type;
-	typedef typename TMatrix::row_iterator row_iterator;
-
-	size_t nConstrg = vConstrainingIndex.size();
-	UG_ASSERT(nConstrg, "There have to be constraining indices!");
-
-	//	check number of indices passed
-	for(size_t i = 0; i < nConstrg; ++i)
-		UG_ASSERT(vConstrainingIndex[i].size() == constrainedIndex.size(),
-				  "Wrong number of indices.");
-
-//	scaling factor
-	const number frac = 1.0 / nConstrg;
-
-//	handle each constrained index
-	for(size_t i = 0; i < constrainedIndex.size(); ++i)
-	{
-		const size_t algInd = constrainedIndex[i];
-
-	//	add coupling constrained index -> constrained index
-	//	we don't have to adjust the block itself, since the row of
-	//	constraints will be set to interpolation afterwards
-		block_type diagEntry = A(algInd, algInd);
-
-	//	scale by weight
-		diagEntry *= frac*frac;
-
-	//	add coupling constrained dof -> constrained dof
-		for(size_t k = 0; k < vConstrainingIndex.size(); ++k)
-			for(size_t m = 0; m < vConstrainingIndex.size(); ++m)
-				A(vConstrainingIndex[k][i], vConstrainingIndex[m][i]) += diagEntry;
-
-#if 0
-
-		// (handled separately as it would otherwise trigger an assert -
-		// manipulation of matrix row while iterating over it)
-		const block_type block = A(algInd, algInd);
-		size_t nBlockCols = GetCols(block);
-		UG_ASSERT(nBlockCols == constrainedIndex.size(),
-			"Number of block cols and number of constrained DoFs in hanging vertex not equal.");
-		for (size_t blockIndConn = 0; blockIndConn < nBlockCols; ++blockIndConn)
-		{
-			const number val = BlockRef(block, blockInd, blockIndConn) * frac*frac;
-			for (size_t k = 0; k < nConstrg; ++k)
-				for (size_t m = 0; m < nConstrg; ++m)
-					DoFRef(A, vConstrainingIndex[k][i], vConstrainingIndex[m][blockIndConn]) += val;
-		}
-#endif
-
-	//	loop coupling between constrained dof -> any other dof
-		for(row_iterator conn = A.begin_row(algInd); conn != A.end_row(algInd); ++conn)
-		{
-			const size_t algIndConn = conn.index();
-
-			// diagonal entry already handled
-			if (algIndConn == algInd)
-				continue;
-
-			// warning: do NOT use references here!
-			// they might become invalid when A is accessed at an entry that does not exist yet
-			// FIXME: This will only work properly if there is an entry A(i,j) for any entry
-			//        A(j,i) in the matrix! Is this always the case!?
-			block_type block = conn.value();
-			block_type blockT = A(algIndConn, algInd);
-
-		//	multiply the cpl value by the inverse number of constraining
-			block *= frac;
-			blockT *= frac;
-
-		//	add the coupling to the constraining indices rows
-			for (size_t k = 0; k < nConstrg; ++k)
-			{
-				UG_ASSERT(vConstrainingIndex[k][i] != constrainedIndex[i],
-						"Modifying 'this' (=conn referenced) matrix row is invalid!" << constrainedIndex[i]);
-				A(vConstrainingIndex[k][i], algIndConn) += block;
-				A(algIndConn, vConstrainingIndex[k][i]) += blockT;
-			}
-
-		//	set the split coupling to zero
-		//	this needs to be done only in columns, since the row associated to
-		//	the constrained index will be set to unity (or interpolation).
-			A(algIndConn, algInd) = 0.0;
-		}
-	}
-}
-
-template <typename TMatrix>
-void SplitAddRow_OneSide(TMatrix& A,
-                         std::vector<size_t>& constrainedIndex,
-                         std::vector<std::vector<size_t> >& vConstrainingIndex)
-{
-	typedef typename TMatrix::value_type block_type;
-	typedef typename TMatrix::row_iterator row_iterator;
-
-	UG_ASSERT(!vConstrainingIndex.empty(), "There have to be constraining indices!");
-
-	//	check number of indices passed
-	for(size_t i = 0; i < vConstrainingIndex.size(); ++i)
-		UG_ASSERT(vConstrainingIndex[i].size() == constrainedIndex.size(),
-				  "Wrong number of indices.");
-
-//	scaling factor
-	const number frac = 1./(vConstrainingIndex.size());
-
-	for(size_t i = 0; i < constrainedIndex.size(); ++i)
-	{
-		const size_t algInd = constrainedIndex[i];
-
-	// choose randomly the first dof to add whole row
-		const size_t addTo = vConstrainingIndex[0][i];
-
-		block_type diagEntry = A(algInd, algInd);
-
-	//	scale by weight
-		diagEntry *= frac;
-
-	//	add coupling
-		for(size_t k = 0; k < vConstrainingIndex.size(); ++k)
-			A(addTo, vConstrainingIndex[k][i]) += diagEntry;
-
-	//	loop coupling between constrained dof -> any other dof
-		for(row_iterator conn = A.begin_row(algInd); conn != A.end_row(algInd); ++conn)
-		{
-			const size_t algIndConn = conn.index();
-
-			//	skip self-coupling (already handled)
-			if (algIndConn == algInd) continue;
-
-			// warning: do NOT use references here!
-			// they might become invalid when A is accessed at an entry that does not exist yet
-			// FIXME: This will only work properly if there is an entry A(i,j) for any entry
-			//        A(j,i) in the matrix! Is this always the case!?
-			const block_type block = conn.value();
-			block_type blockT = A(algIndConn, algInd);
-
-			blockT *= frac;
-
-		//	add the coupling to the constraining indices rows
-			for(size_t k = 0; k < vConstrainingIndex.size(); ++k)
-				A(algIndConn, vConstrainingIndex[k][i]) += blockT;
-
-		//	coupling due to one side adding
-			A(addTo, algIndConn) += block;
-
-		//	set the split coupling to zero
-		//	this must only be done in columns, since the row associated to
-		//	the constrained index will be set to an interpolation.
-			A(algIndConn, algInd) = 0.0;
-		}
-	}
-}
 
 template <typename TVector>
 void SplitAddRhs_Symmetric(TVector& rhs,
@@ -462,8 +281,155 @@ adjust_rhs(vector_type& rhs, const vector_type& u,
 
 	//	adapt rhs
 		SplitAddRhs_Symmetric(rhs, constrainedInd, vConstrainingInd);
+
+		const size_t nCstrd = constrainedInd.size();
+		for (size_t i = 0; i < nCstrd; ++i)
+			rhs[constrainedInd[i]] = u[constrainedInd[i]];
 	}
 }
+
+static void fillConstraintMapSymmetric
+(
+	std::map<size_t, std::vector<size_t> >& constraintMap,
+	ConstSmartPtr<DoFDistribution> dd
+)
+{
+	std::vector<std::vector<size_t> > vConstrainingInd;
+	std::vector<size_t> constrainedInd;
+	std::vector<size_t> constrainers;
+	std::vector<Vertex*> vConstrainingVrt;
+
+	// get begin end of hanging vertices
+	DoFDistribution::traits<ConstrainedVertex>::const_iterator iter, iterEnd;
+	iter = dd->begin<ConstrainedVertex>();
+	iterEnd = dd->end<ConstrainedVertex>();
+
+	// loop constrained vertices
+	for (; iter != iterEnd; ++iter)
+	{
+		// get hanging vert
+		ConstrainedVertex* hgVrt = *iter;
+
+		// get algebra indices for constrained and constraining vertices
+		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
+
+		// save in constraint map
+		const size_t nInd = constrainedInd.size();
+		const size_t nConstrainers = vConstrainingInd.size();
+		constrainers.resize(nConstrainers);
+		for (size_t i = 0; i < nInd; ++i)
+		{
+			for (size_t j = 0; j < nConstrainers; ++j)
+				constrainers[j] = vConstrainingInd[j][i];
+			constraintMap[constrainedInd[i]] = constrainers;
+		}
+	}
+}
+
+template <typename TMatrix>
+static void splitConstrainedRowSymmetric
+(
+	TMatrix& J,
+	size_t constrdInd,
+	const std::vector<size_t>& vConstrgInd
+)
+{
+	typedef typename TMatrix::value_type block_type;
+	typedef typename TMatrix::row_iterator row_iterator;
+
+	const size_t nConstrg = vConstrgInd.size();
+	const number frac = 1.0 / nConstrg;
+
+	// distribute row equally to constrainers
+	for (row_iterator conn = J.begin_row(constrdInd); conn != J.end_row(constrdInd); ++conn)
+	{
+		const size_t connInd = conn.index();
+		block_type block = conn.value();
+		block *= frac;
+		for (size_t k = 0; k < nConstrg; ++k)
+			J(vConstrgInd[k], connInd) += block;
+	}
+}
+
+template <typename TVector>
+static void splitConstrainedRhsEntrySymmetric
+(
+	TVector& rhs,
+	size_t constrdInd,
+	const std::vector<size_t>& vConstrgInd
+)
+{
+	typedef typename TVector::value_type block_type;
+
+	const size_t nConstrg = vConstrgInd.size();
+	const number frac = 1.0 / nConstrg;
+
+	// get constrained rhs
+	// modify block directly since set to zero afterwards
+	block_type& val = rhs[constrdInd];
+	val *= frac;
+
+	// split equally on all constraining indices
+	for (size_t i = 0; i < nConstrg; ++i)
+		rhs[vConstrgInd[i]] += val;
+
+	// set rhs to zero for constrained index
+	val = 0.0;
+}
+
+template <typename TMatrix>
+static void splitConstrainedCols
+(
+	TMatrix& J,
+	const std::map<size_t, std::vector<size_t> >& constraintMap
+)
+{
+	typedef typename TMatrix::value_type block_type;
+	typedef typename TMatrix::row_iterator row_iterator;
+	typedef typename std::map<size_t, std::vector<size_t> >::const_iterator constraint_iter;
+
+	const size_t nRows = J.num_rows();
+	std::vector<constraint_iter> tmpConstraints;
+	for (size_t r = 0; r < nRows; ++r)
+	{
+		// leave out constrained rows (already final)
+		if (constraintMap.find(r) != constraintMap.end())
+			continue;
+
+		// loop row
+		tmpConstraints.clear();
+		for (row_iterator conn = J.begin_row(r); conn != J.end_row(r); ++conn)
+		{
+			const size_t connInd = conn.index();
+
+			// remember constrained columns
+			constraint_iter it = constraintMap.find(connInd);
+			if (it != constraintMap.end())
+				tmpConstraints.push_back(it);
+		}
+
+		// split constrained columns to constrainers (separate iteration to not throw off iterators)
+		const size_t nConstraints = tmpConstraints.size();
+		for (size_t i = 0; i < nConstraints; ++i)
+		{
+			const size_t cdi = tmpConstraints[i]->first;
+			const std::vector<size_t>& vConstrgInd = tmpConstraints[i]->second;
+			const size_t nConstrg = vConstrgInd.size();
+			const number frac = 1.0 / nConstrg;
+
+			// add to constraining column entries
+			block_type block = J(r, cdi);
+			block *= frac;
+			for (size_t k = 0; k < nConstrg; ++k)
+				J(r, vConstrgInd[k]) += block;
+
+			// set constrained column entry zero
+			J(r, cdi) = 0.0;
+		}
+	}
+}
+
+
 
 template <typename TDomain, typename TAlgebra>
 void
@@ -473,77 +439,70 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
                 ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 				const number s_a0)
 {
-	if(this->m_spAssTuner->single_index_assembling_enabled())
+	if (this->m_spAssTuner->single_index_assembling_enabled())
 		UG_THROW("index-wise assemble routine is not "
 				"implemented for SymP1Constraints \n");
 
-//	storage for indices and vertices
-	std::vector<std::vector<size_t> > vConstrainingInd;
-	std::vector<size_t> constrainedInd;
-	std::vector<Vertex*> vConstrainingVrt;
+	std::map<size_t, std::vector<size_t> > constraintMap;
+	typedef typename std::map<size_t, std::vector<size_t> >::const_iterator constraint_iter;
+	fillConstraintMapSymmetric(constraintMap, dd);
 
-//	get begin end of hanging vertices
-	DoFDistribution::traits<ConstrainedVertex>::const_iterator iter, iterEnd;
-	iter = dd->begin<ConstrainedVertex>();
-	iterEnd = dd->end<ConstrainedVertex>();
-
-//	loop constrained vertices
-	for(; iter != iterEnd; ++iter)
+	// split constrained rows to constrainers and set interpolation row (or identity)
+	constraint_iter it = constraintMap.begin();
+	constraint_iter itEnd = constraintMap.end();
+	for (; it != itEnd; ++it)
 	{
-	//	get hanging vert
-		ConstrainedVertex* hgVrt = *iter;
+		size_t constrdInd = it->first;
+		const std::vector<size_t>& vConstrgInd = it->second;
 
-	// get algebra indices for constrained and constraining vertices
-		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
+		// split original row
+		splitConstrainedRowSymmetric(J, constrdInd, vConstrgInd);
 
-	// 	Split using indices
-		SplitAddRow_Symmetric(J, constrainedInd, vConstrainingInd);
-
-	//	set interpolation
-		SetInterpolation(J, constrainedInd, vConstrainingInd, m_bAssembleLinearProblem);
+		// set identity row (or interpolating row in linear case)
+		setConstrainedRow(J, constrdInd, vConstrgInd);
 	}
+
+	// apply chain rule, i.e., also split constrained columns
+	// (unfortunately, we have to iterate the whole matrix for this)
+	splitConstrainedCols(J, constraintMap);
 }
 
 template <typename TDomain, typename TAlgebra>
 void
 SymP1Constraints<TDomain,TAlgebra>::
-adjust_linear(matrix_type& mat, vector_type& rhs,
+adjust_linear(matrix_type& mat, vector_type& rhs, const vector_type& u,
               ConstSmartPtr<DoFDistribution> dd, int type, number time)
 {
-	m_bAssembleLinearProblem = true;
-
-	if(this->m_spAssTuner->single_index_assembling_enabled())
+	if (this->m_spAssTuner->single_index_assembling_enabled())
 		UG_THROW("index-wise assemble routine is not "
 				"implemented for SymP1Constraints \n");
 
-//	storage for indices and vertices
-	std::vector<std::vector<size_t> > vConstrainingInd;
-	std::vector<size_t> constrainedInd;
-	std::vector<Vertex*> vConstrainingVrt;
+	std::map<size_t, std::vector<size_t> > constraintMap;
+	typedef typename std::map<size_t, std::vector<size_t> >::const_iterator constraint_iter;
+	fillConstraintMapSymmetric(constraintMap, dd);
 
-//	get begin end of hanging vertices
-	DoFDistribution::traits<ConstrainedVertex>::const_iterator iter, iterEnd;
-	iter = dd->begin<ConstrainedVertex>();
-	iterEnd = dd->end<ConstrainedVertex>();
-
-//	loop constrained vertices
-	for(; iter != iterEnd; ++iter)
+	// split constrained rows to constrainers and set interpolation row (or identity)
+	constraint_iter it = constraintMap.begin();
+	constraint_iter itEnd = constraintMap.end();
+	for (; it != itEnd; ++it)
 	{
-	//	get hanging vert
-		ConstrainedVertex* hgVrt = *iter;
+		size_t constrdInd = it->first;
+		const std::vector<size_t>& vConstrgInd = it->second;
 
-	// get algebra indices for constrained and constraining vertices
-		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
+		// split original row
+		splitConstrainedRowSymmetric(mat, constrdInd, vConstrgInd);
 
-	// 	Split using indices
-		SplitAddRow_Symmetric(mat, constrainedInd, vConstrainingInd);
+		// split original rhs entry
+		splitConstrainedRhsEntrySymmetric(rhs, constrdInd, vConstrgInd);
+		rhs[constrdInd] = u[constrdInd];
 
-	//	set interpolation
-		SetInterpolation(mat, constrainedInd, vConstrainingInd, true);
-
-	//	adapt rhs
-		SplitAddRhs_Symmetric(rhs, constrainedInd, vConstrainingInd);
+		// set identity row (or interpolating row in linear case)
+		setConstrainedRow(mat, constrdInd, vConstrgInd);
 	}
+
+	// apply chain rule, i.e., also split constrained columns
+	// (unfortunately, we have to iterate the whole matrix for this)
+	splitConstrainedCols(mat, constraintMap);
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -593,8 +552,6 @@ adjust_prolongation
 	number time
 )
 {
-	if (m_bAssembleLinearProblem) return;
-
 	if (this->m_spAssTuner->single_index_assembling_enabled())
 			UG_THROW("index-wise assemble routine is not "
 					"implemented for SymP1Constraints \n");
@@ -694,7 +651,7 @@ adjust_correction
 template<int dim>
 struct SortVertexPos {
 
-		SortVertexPos(SmartPtr<Domain<dim, MultiGrid, MGSubsetHandler> > spDomain)
+		SortVertexPos(ConstSmartPtr<Domain<dim, MultiGrid, MGSubsetHandler> > spDomain)
 			: m_aaPos(spDomain->position_accessor())
 		{}
 
@@ -702,7 +659,7 @@ struct SortVertexPos {
 			{UG_THROW(dim <<" not implemented.");}
 
 	protected:
-  	  typename Domain<dim, MultiGrid, MGSubsetHandler>::position_accessor_type& m_aaPos;
+		const typename Domain<dim, MultiGrid, MGSubsetHandler>::position_accessor_type& m_aaPos;
 };
 
 template<>
@@ -908,8 +865,96 @@ adjust_rhs(vector_type& rhs, const vector_type& u,
 
 	//	adapt rhs
 		SplitAddRhs_OneSide(rhs, constrainedInd, vConstrainingInd);
+
+		const size_t nCstrd = constrainedInd.size();
+		for (size_t i = 0; i < nCstrd; ++i)
+			rhs[constrainedInd[i]] = u[constrainedInd[i]];
 	}
 }
+
+
+template <typename TDomain>
+static void fillConstraintMapOneSide
+(
+	std::map<size_t, std::vector<size_t> >& constraintMap,
+	ConstSmartPtr<DoFDistribution> dd,
+	ConstSmartPtr<TDomain> dom
+)
+{
+	std::vector<std::vector<size_t> > vConstrainingInd;
+	std::vector<size_t> constrainedInd;
+	std::vector<size_t> constrainers;
+	std::vector<Vertex*> vConstrainingVrt;
+
+#ifdef UG_PARALLEL
+	SortVertexPos<TDomain::dim> sortVertexPos(dom);
+#endif
+
+	// get begin end of hanging vertices
+	DoFDistribution::traits<ConstrainedVertex>::const_iterator iter, iterEnd;
+	iter = dd->begin<ConstrainedVertex>();
+	iterEnd = dd->end<ConstrainedVertex>();
+
+	// loop constrained vertices
+	for (; iter != iterEnd; ++iter)
+	{
+		// get hanging vert
+		ConstrainedVertex* hgVrt = *iter;
+
+		// get algebra indices for constrained and constraining vertices
+#ifdef UG_PARALLEL
+		get_algebra_indices<TDomain>(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd, sortVertexPos);
+#else
+		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
+#endif
+
+		// save in constraint map
+		const size_t nInd = constrainedInd.size();
+		const size_t nConstrainers = vConstrainingInd.size();
+		constrainers.resize(nConstrainers);
+		for (size_t i = 0; i < nInd; ++i)
+		{
+			for (size_t j = 0; j < nConstrainers; ++j)
+				constrainers[j] = vConstrainingInd[j][i];
+			constraintMap[constrainedInd[i]] = constrainers;
+		}
+	}
+}
+
+template <typename TMatrix>
+static void splitConstrainedRowOneSide
+(
+	TMatrix& J,
+	size_t constrdInd,
+	const std::vector<size_t>& vConstrgInd
+)
+{
+	typedef typename TMatrix::row_iterator row_iterator;
+
+	// add complete row to first constrainer
+	for (row_iterator conn = J.begin_row(constrdInd); conn != J.end_row(constrdInd); ++conn)
+	{
+		const size_t connInd = conn.index();
+		J(vConstrgInd[0], connInd) += conn.value();
+	}
+}
+
+template <typename TVector>
+static void splitConstrainedRhsEntryOneSide
+(
+	TVector& rhs,
+	size_t constrdInd,
+	const std::vector<size_t>& vConstrgInd
+)
+{
+	// add complete entry to first constrainer index
+	typename TVector::value_type& val = rhs[constrdInd];
+	rhs[vConstrgInd[0]] += val;
+
+	// set rhs to zero for constrained index
+	val = 0.0;
+}
+
 
 template <typename TDomain, typename TAlgebra>
 void
@@ -919,93 +964,70 @@ adjust_jacobian(matrix_type& J, const vector_type& u,
                 ConstSmartPtr<VectorTimeSeries<vector_type> > vSol,
 				const number s_a0)
 {
-	if(this->m_spAssTuner->single_index_assembling_enabled())
+	if (this->m_spAssTuner->single_index_assembling_enabled())
 		UG_THROW("index-wise assemble routine is not "
-				"implemented for OneSideP1Constraints \n");
+				"implemented for OneSideP1Constraints.");
 
-//	storage for indices and vertices
-	std::vector<std::vector<size_t> > vConstrainingInd;
-	std::vector<size_t>  constrainedInd;
-	std::vector<Vertex*> vConstrainingVrt;
+	std::map<size_t, std::vector<size_t> > constraintMap;
+	typedef typename std::map<size_t, std::vector<size_t> >::const_iterator constraint_iter;
+	fillConstraintMapOneSide<TDomain>(constraintMap, dd, this->approximation_space()->domain());
 
-#ifdef UG_PARALLEL
-	SortVertexPos<TDomain::dim> sortVertexPos(this->approximation_space()->domain());
-#endif
-
-//	get begin end of hanging vertices
-	DoFDistribution::traits<ConstrainedVertex>::const_iterator iter, iterEnd;
-	iter = dd->begin<ConstrainedVertex>();
-	iterEnd = dd->end<ConstrainedVertex>();
-
-//	loop constrained vertices
-	for(; iter != iterEnd; ++iter)
+	// split constrained rows to constrainers and set interpolation row (or identity)
+	constraint_iter it = constraintMap.begin();
+	constraint_iter itEnd = constraintMap.end();
+	for (; it != itEnd; ++it)
 	{
-	//	get hanging vert
-		ConstrainedVertex* hgVrt = *iter;
+		size_t constrdInd = it->first;
+		const std::vector<size_t>& vConstrgInd = it->second;
 
-	// get algebra indices for constrained and constraining vertices
-#ifdef UG_PARALLEL
-		get_algebra_indices<TDomain>(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd, sortVertexPos);
-#else
-		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
-#endif
+		// split original row
+		splitConstrainedRowOneSide(J, constrdInd, vConstrgInd);
 
-	// 	Split using indices
-		SplitAddRow_OneSide(J, constrainedInd, vConstrainingInd);
-
-	//	set interpolation
-		SetInterpolation(J, constrainedInd, vConstrainingInd, m_bAssembleLinearProblem);
+		// set identity row (or interpolating row in linear case)
+		setConstrainedRow(J, constrdInd, vConstrgInd);
 	}
+
+	// apply chain rule, i.e., also split constrained columns
+	// (unfortunately, we have to iterate the whole matrix for this)
+	splitConstrainedCols(J, constraintMap);
 }
 
 template <typename TDomain, typename TAlgebra>
 void
 OneSideP1Constraints<TDomain,TAlgebra>::
-adjust_linear(matrix_type& mat, vector_type& rhs,
+adjust_linear(matrix_type& mat, vector_type& rhs, const vector_type& u,
               ConstSmartPtr<DoFDistribution> dd, int type, number time)
 {
-	m_bAssembleLinearProblem = true;
-
-	if(this->m_spAssTuner->single_index_assembling_enabled())
+	if (this->m_spAssTuner->single_index_assembling_enabled())
 		UG_THROW("index-wise assemble routine is not "
-				"implemented for OneSideP1Constraints \n");
+				"implemented for OneSideP1Constraints");
 
-//	storage for indices and vertices
-	std::vector<std::vector<size_t> > vConstrainingInd;
-	std::vector<size_t>  constrainedInd;
-	std::vector<Vertex*> vConstrainingVrt;
+	std::map<size_t, std::vector<size_t> > constraintMap;
+	typedef typename std::map<size_t, std::vector<size_t> >::const_iterator constraint_iter;
+	fillConstraintMapOneSide<TDomain>(constraintMap, dd, this->approximation_space()->domain());
 
-#ifdef UG_PARALLEL
-	SortVertexPos<TDomain::dim> sortVertexPos(this->approximation_space()->domain());
-#endif
-
-//	get begin end of hanging vertices
-	DoFDistribution::traits<ConstrainedVertex>::const_iterator iter, iterEnd;
-	iter = dd->begin<ConstrainedVertex>();
-	iterEnd = dd->end<ConstrainedVertex>();
-
-//	loop constraining edges
-	for(; iter != iterEnd; ++iter)
+	// split constrained rows to constrainers and set interpolation row (or identity)
+	constraint_iter it = constraintMap.begin();
+	constraint_iter itEnd = constraintMap.end();
+	for (; it != itEnd; ++it)
 	{
-	//	get hanging vert
-		ConstrainedVertex* hgVrt = *iter;
+		size_t constrdInd = it->first;
+		const std::vector<size_t>& vConstrgInd = it->second;
 
-	// get algebra indices for constrained and constraining vertices
-#ifdef UG_PARALLEL
-		get_algebra_indices<TDomain>(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd, sortVertexPos);
-#else
-		get_algebra_indices(dd, hgVrt, vConstrainingVrt, constrainedInd, vConstrainingInd);
-#endif
+		// split original row
+		splitConstrainedRowOneSide(mat, constrdInd, vConstrgInd);
 
-	// 	Split using indices
-		SplitAddRow_OneSide(mat, constrainedInd, vConstrainingInd);
+		// split original rhs entry
+		splitConstrainedRhsEntryOneSide(rhs, constrdInd, vConstrgInd);
+		rhs[constrdInd] = u[constrdInd];
 
-	//	Set interpolation
-		SetInterpolation(mat, constrainedInd, vConstrainingInd, true);
-
-	//	adapt rhs
-		SplitAddRhs_OneSide(rhs, constrainedInd, vConstrainingInd);
+		// set identity row (or interpolating row in linear case)
+		setConstrainedRow(mat, constrdInd, vConstrgInd);
 	}
+
+	// apply chain rule, i.e., also split constrained columns
+	// (unfortunately, we have to iterate the whole matrix for this)
+	splitConstrainedCols(mat, constraintMap);
 }
 
 template <typename TDomain, typename TAlgebra>
@@ -1056,8 +1078,6 @@ adjust_prolongation
 	number time
 )
 {
-	if (m_bAssembleLinearProblem) return;
-
 	if (this->m_spAssTuner->single_index_assembling_enabled())
 			UG_THROW("index-wise assemble routine is not "
 					"implemented for SymP1Constraints \n");
